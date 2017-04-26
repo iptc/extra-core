@@ -9,8 +9,32 @@
   	<packaging>jar</packaging>
 
   	<name>extra-core</name>
-  	<url>http://maven.apache.org</url>
+  	<url>https://github.com/iptc/extra-core</url>
+	<description>Core implementation of the IPTC EXTRA project</description>
 
+	<developers>
+        <developer>
+            <id>manosetro</id>
+            <name>Manos Schinas</name>
+            <email>manosetro@iti.gr</email>
+        </developer>
+    </developers>
+    
+    <licenses>
+    	<license>
+      		<name>The Apache Software License, Version 2.0</name>
+      		<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      		<distribution>repo</distribution>
+    	</license>
+  	</licenses>
+  
+  	<scm>
+        <connection>scm:git:git@github.com:iptc/extra-core.git</connection>
+        <developerConnection>scm:git:git@github.com:iptc/extra-core.git</developerConnection>
+        <url>git@github.com:iptc/extra-core.git</url>
+  	  	<tag>HEAD</tag>
+  	</scm>
+  
   	<properties>
     	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   	</properties>
@@ -63,17 +87,39 @@
         	<artifactId>antlr4-runtime</artifactId>
         	<version>4.5.3</version>
         </dependency>
-
   	</dependencies>
-  	
+    
+    <!--
   	<distributionManagement>
   		<snapshotRepository>
     		<id>ossrh</id>
     		<url>https://oss.sonatype.org/content/repositories/snapshots</url>
   		</snapshotRepository>
 	</distributionManagement>
-	
+	-->
+	<parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
+    
 	<build>
+		<pluginManagement>
+        	<plugins>
+           		<plugin>
+                     <groupId>org.apache.maven.plugins</groupId>
+                     <artifactId>maven-release-plugin</artifactId>
+                     <version>2.5</version>
+                     <configuration>
+                     	  <autoVersionSubmodules>true</autoVersionSubmodules>
+                          <useReleaseProfile>false</useReleaseProfile>
+                          <releaseProfiles>release</releaseProfiles>
+                          <goals>deploy</goals>
+                     </configuration>
+                </plugin>
+          	</plugins>
+		</pluginManagement>
+		
   		<plugins>
     		<plugin>
       			<groupId>org.sonatype.plugins</groupId>
