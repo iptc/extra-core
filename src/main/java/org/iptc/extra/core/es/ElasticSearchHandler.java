@@ -34,6 +34,11 @@ public class ElasticSearchHandler {
 	
 	protected RestClient restClient;
 	
+	public ElasticSearchHandler(String host, String port) {
+		int p = Integer.parseInt(port);
+		restClient = RestClient.builder(new HttpHost(host, p, "http")).build();
+	}
+	
 	public ElasticSearchHandler(String host, int port) {
 		restClient = RestClient.builder(new HttpHost(host, port, "http")).build();
 	}
