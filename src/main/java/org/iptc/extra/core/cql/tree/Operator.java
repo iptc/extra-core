@@ -4,6 +4,8 @@ public class Operator extends Modified  {
 
 	private String operator; 
 	
+	private boolean valid = true;
+	
 	public Operator(String operator) {
 		this.operator = operator;
 	}
@@ -38,5 +40,13 @@ public class Operator extends Modified  {
 		buffer.append(operator);
 		buffer.append(super.toString());
 		return buffer.toString();
+	}
+
+	public boolean isValid() {
+		return valid;
+	}
+
+	public void setValid(boolean valid) {
+		this.valid = valid;
 	}
 }

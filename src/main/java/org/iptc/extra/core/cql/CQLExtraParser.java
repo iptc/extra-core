@@ -25,8 +25,10 @@ import org.iptc.extra.core.cql.tree.PrefixClause;
 import org.iptc.extra.core.cql.tree.Relation;
 import org.iptc.extra.core.cql.tree.SearchClause;
 import org.iptc.extra.core.cql.tree.SearchTerms;
+import org.iptc.extra.core.cql.tree.extra.ExtraOperator;
+import org.iptc.extra.core.cql.tree.extra.ExtraRelation;
 
-public class CQLParser {
+public class CQLExtraParser {
 	
 	private static Node getRootNode(ParseTree tree) {
 		
@@ -100,6 +102,10 @@ public class CQLParser {
 				}
 				
 				depth--;
+				
+				boolean valid = ExtraOperator.isValid(operator);
+				operator.setValid(valid);
+				
 				return operator;
 			}
 			
@@ -158,6 +164,10 @@ public class CQLParser {
 				}
 				
 				depth--;
+				
+				boolean valid = ExtraRelation.isValid(relation);
+				relation.setValid(valid);
+				
 				return relation;
 			}
 			

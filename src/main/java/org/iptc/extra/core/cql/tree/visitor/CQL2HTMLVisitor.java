@@ -39,7 +39,8 @@ public class CQL2HTMLVisitor extends SyntaxTreeVisitor<String> {
 	public String visitOperator(Operator operator) {
 		StringBuffer buffer = new StringBuffer();
 		
-		buffer.append("<" + htmlTag + " class=\"booleanOp\" data-depth=\"" + operator.getDepth() + "\">");
+		buffer.append("<" + htmlTag + " class=\"booleanOp\" data-valid=\"" + operator.isValid() + "\" " 
+				+ "data-depth=\"" + operator.getDepth() + "\">");
 		buffer.append(operator);
 		buffer.append("</" + htmlTag + ">");
 		
@@ -76,7 +77,8 @@ public class CQL2HTMLVisitor extends SyntaxTreeVisitor<String> {
 	public String visitRelation(Relation relation) {
 		StringBuffer buffer = new StringBuffer();
 		
-		buffer.append("<" + htmlTag + " class=\"relation\" data-depth=\"" + relation.getDepth() + "\"> ");
+		buffer.append("<" + htmlTag + " class=\"relation\" data-valid=\"" + relation.isValid() + "\" "
+				+ "data-depth=\"" + relation.getDepth() + "\"> ");
 		buffer.append(relation);
 		buffer.append(" </" + htmlTag + ">");	
 		

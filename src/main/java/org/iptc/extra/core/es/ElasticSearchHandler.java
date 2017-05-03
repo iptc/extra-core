@@ -20,7 +20,7 @@ import org.apache.http.nio.entity.NStringEntity;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.index.query.QueryBuilder;
-import org.iptc.extra.core.types.Document;
+import org.iptc.extra.core.types.document.Document;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;

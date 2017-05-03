@@ -44,6 +44,10 @@ public class Modifier extends Node {
 		return (value != null && comparitor != null);
 	}
 	
+	public boolean valueEquals(String value) {
+		return value.equals(this.value);
+	}
+	
 	public boolean isComparitorLT() {
 		return hasValue() && comparitor.equals("<");
 	}

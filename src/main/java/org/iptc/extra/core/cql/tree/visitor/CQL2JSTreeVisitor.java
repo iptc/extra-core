@@ -33,7 +33,7 @@ public class CQL2JSTreeVisitor extends SyntaxTreeVisitor<String> {
 		public String visitOperator(Operator operator) {
 			StringBuffer buffer = new StringBuffer();
 			
-			buffer.append("<span class=\"booleanOp\">");
+			buffer.append("<span class=\"booleanOp\" data-valid=\"" + operator.isValid() + "\">");
 			buffer.append(operator);
 			buffer.append("</span>");
 			
@@ -70,7 +70,7 @@ public class CQL2JSTreeVisitor extends SyntaxTreeVisitor<String> {
 		public String visitRelation(Relation relation) {
 			StringBuffer buffer = new StringBuffer();
 			
-			buffer.append("<span class=\"relation\"> ");
+			buffer.append("<span class=\"relation\" data-valid=\"" + relation.isValid() + "\"> ");
 			buffer.append(relation);
 			buffer.append("</span>");
 			

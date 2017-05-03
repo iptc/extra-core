@@ -50,14 +50,14 @@ public class Schema {
 		return fields;
 	}
 
-	public void addField(String name, String type) {
+	public void addField(String name, boolean textual) {
 		if(hasField(name)) {
-			Field field = new Field(name, type);
+			Field field = new Field(name, textual);
 			int index = fields.indexOf(field);
 			fields.add(index, field);
 		}
 		else {
-			Field field = new Field(name, type);
+			Field field = new Field(name, textual);
 			fields.add(field);
 		}
 	}
@@ -87,15 +87,15 @@ public class Schema {
 	public static class Field {
 		
 		private String name;
-		private String type;
+		private boolean textual;	
 		
 		public Field() {
 			
 		}
 		
-		public Field(String name, String type) {
+		public Field(String name, boolean textual) {
 			this.name = name;
-			this.type = type;
+			this.setTextual(textual);
 		}
 		
 		public String getName() {
@@ -105,14 +105,15 @@ public class Schema {
 		public void setName(String name) {
 			this.name = name;
 		}
-		
-		public String getType() {
-			return type;
+
+		public boolean isTextual() {
+			return textual;
 		}
-		
-		public void setType(String type) {
-			this.type = type;
+
+		public void setTextual(boolean textual) {
+			this.textual = textual;
 		}
+
 	}
 	
 }
