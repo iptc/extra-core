@@ -45,6 +45,9 @@ public enum ExtraRelation {
 		if(r.equals(GT.relation()) || r.equals(GTE.relation())) {
 			return true;
 		}
+		if(r.equals(ADJ.relation())) {
+			return true;
+		}
 		if(r.equals(ALL.relation())) {
 			return true;
 		}
