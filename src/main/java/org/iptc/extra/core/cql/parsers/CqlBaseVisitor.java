@@ -47,6 +47,13 @@ public class CqlBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements Cq
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
+	@Override public T visitCommentClause(CqlParser.CommentClauseContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
 	@Override public T visitRelation(CqlParser.RelationContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}

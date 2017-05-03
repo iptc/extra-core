@@ -66,6 +66,18 @@ public class CqlBaseListener implements CqlListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterCommentClause(CqlParser.CommentClauseContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitCommentClause(CqlParser.CommentClauseContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterRelation(CqlParser.RelationContext ctx) { }
 	/**
 	 * {@inheritDoc}

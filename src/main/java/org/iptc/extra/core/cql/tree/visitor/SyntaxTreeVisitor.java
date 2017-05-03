@@ -1,6 +1,7 @@
 package org.iptc.extra.core.cql.tree.visitor;
 
 import org.iptc.extra.core.cql.tree.Clause;
+import org.iptc.extra.core.cql.tree.CommentClause;
 import org.iptc.extra.core.cql.tree.Index;
 import org.iptc.extra.core.cql.tree.Node;
 import org.iptc.extra.core.cql.tree.Operator;
@@ -27,6 +28,10 @@ public class SyntaxTreeVisitor<T> {
 		 
 		 if (node instanceof SearchTerms) {
 			 return visitSearchTerms((SearchTerms) node);
+		 }
+		 
+		 if (node instanceof CommentClause) {
+			 return visitCommentClause((CommentClause) node);
 		 }
 		 
 		 if (node instanceof SearchClause) {
@@ -72,6 +77,10 @@ public class SyntaxTreeVisitor<T> {
 	
 	public T visitClause(Clause clause) {
 		return visitChildren(clause);
+	}
+	
+	public T visitCommentClause(CommentClause commentClause) {
+		return visitChildren(commentClause);
 	}
 	
 	public T visitSearchClause(SearchClause searchClause) {

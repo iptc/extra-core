@@ -2,6 +2,7 @@ package org.iptc.extra.core.cql.tree.visitor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.iptc.extra.core.cql.tree.Clause;
+import org.iptc.extra.core.cql.tree.CommentClause;
 import org.iptc.extra.core.cql.tree.Operator;
 import org.iptc.extra.core.cql.tree.PrefixClause;
 import org.iptc.extra.core.cql.tree.SearchClause;
@@ -56,5 +57,13 @@ public class PretifyVisitor extends SyntaxTreeVisitor<String> {
 		return buffer.toString();
 	}
 	
+	@Override
+	public String visitCommentClause(CommentClause commentClause) {	
+		StringBuffer buffer = new StringBuffer();
+		buffer.append(StringUtils.repeat(tab, commentClause.getDepth()));
+		buffer.append(commentClause.getComment());
+		buffer.append(newline);
+		return buffer.toString();
+	}
 }
 

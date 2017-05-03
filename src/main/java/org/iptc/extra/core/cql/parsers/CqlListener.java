@@ -50,6 +50,16 @@ public interface CqlListener extends ParseTreeListener {
 	 */
 	void exitSearchClause(CqlParser.SearchClauseContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link CqlParser#commentClause}.
+	 * @param ctx the parse tree
+	 */
+	void enterCommentClause(CqlParser.CommentClauseContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CqlParser#commentClause}.
+	 * @param ctx the parse tree
+	 */
+	void exitCommentClause(CqlParser.CommentClauseContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link CqlParser#relation}.
 	 * @param ctx the parse tree
 	 */

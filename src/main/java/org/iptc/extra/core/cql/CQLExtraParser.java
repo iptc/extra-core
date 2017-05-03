@@ -11,12 +11,14 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.apache.commons.lang3.StringUtils;
 import org.iptc.extra.core.cql.parsers.CqlBaseVisitor;
 import org.iptc.extra.core.cql.parsers.CqlLexer;
 import org.iptc.extra.core.cql.parsers.CqlParser;
 import org.iptc.extra.core.cql.parsers.CqlParser.ModifierContext;
 import org.iptc.extra.core.cql.parsers.CqlParser.StatementContext;
 import org.iptc.extra.core.cql.tree.Clause;
+import org.iptc.extra.core.cql.tree.CommentClause;
 import org.iptc.extra.core.cql.tree.Index;
 import org.iptc.extra.core.cql.tree.Modifier;
 import org.iptc.extra.core.cql.tree.Node;
@@ -135,6 +137,20 @@ public class CQLExtraParser {
 				
 				depth--;
 				return searchClause;
+			}
+			
+			@Override 
+			public Node visitCommentClause(CqlParser.CommentClauseContext ctx) {
+				List<String> terms = new ArrayList<String>();
+				for(ParseTree child : ctx.children) {
+					terms.add(child.getText());
+				}
+				
+				String comment = StringUtils.join(terms, " ");
+				CommentClause commentClause = new CommentClause(comment);
+				commentClause.setDepth(depth);
+				
+				return commentClause; 
 			}
 			
 			@Override 

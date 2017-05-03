@@ -37,6 +37,12 @@ public interface CqlVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitSearchClause(CqlParser.SearchClauseContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link CqlParser#commentClause}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCommentClause(CqlParser.CommentClauseContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link CqlParser#relation}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
