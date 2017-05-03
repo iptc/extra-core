@@ -1,5 +1,6 @@
 package org.iptc.extra.core.cql.tree.utils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -27,6 +28,22 @@ public class TreeUtils {
 			}
 		}
 		return true;
+	}
+	
+	public static List<Node> getInvalidNodes(Node root) {
+		List<Node> nodes = new ArrayList<Node>();
+		for(Relation relation : getRelations(root)) {
+			if(!relation.isValid()) {
+				nodes.add(relation);
+			}
+		}
+		for(Operator operator : getOperators(root)) {
+			if(!operator.isValid()) {
+				nodes.add(operator);
+			}
+		}
+		
+		return nodes;
 	}
 	
 	public static Set<String> validateSchema(Node root, Schema schema) {
