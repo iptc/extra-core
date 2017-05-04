@@ -27,4 +27,7 @@ public class DocumentField {
 		return new JsonPrimitive(value);
 	}
 	
+	public String toString() {
+		return value;
+	}
 }
