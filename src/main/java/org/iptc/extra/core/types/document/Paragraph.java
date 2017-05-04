@@ -32,5 +32,12 @@ public class Paragraph {
 		this.sentences = sentences;
 	}
 	
-	
+	public String toString() {
+		StringBuffer buffer = new StringBuffer();
+		for(Sentence sentence : sentences) {
+			buffer.append(sentence.getText());
+		}
+		
+		return buffer.toString();
+	}
 }

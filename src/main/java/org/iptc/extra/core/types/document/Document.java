@@ -8,9 +8,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.iptc.extra.core.types.Schema;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 @XmlRootElement()
-public class Document extends HashMap<String, Object> {
+public class Document extends HashMap<String, DocumentField> {
 	
 	/**
 	 * 
@@ -22,22 +24,29 @@ public class Document extends HashMap<String, Object> {
 	}
 	
 	public Document(String id) {
-		this.put("id", id);
+		DocumentField idField = new DocumentField(id);
+		this.put("id", idField);
 	}
 
 	public String getId() {
-		return (String) this.get("id");
+		return this.get("id").getValue();
 	}
 
 	public void setId(String id) {
-		this.put("id", id);
+		DocumentField idField = new DocumentField(id);
+		this.put("id", idField);
 	}
 	
-	public void addField(String key, Object value) {
+	public void addField(String key, DocumentField value) {
 		this.put(key, value);
 	}
 	
-	public Set<String> getFields() {
+	public void addField(String key, String value) {
+		DocumentField field = new DocumentField(value);
+		this.put(key, field);
+	}
+	
+	public Set<String> getFieldNames() {
 		Set<String> fields = new HashSet<String>(this.keySet());
 		return fields;
 	}
@@ -49,7 +58,7 @@ public class Document extends HashMap<String, Object> {
 	public boolean matchSchema(Schema schema) {
 		
 		Set<String> schemaFields = schema.getFieldNames();
-		Set<String> documentFields = getFields();
+		Set<String> documentFields = getFieldNames();
 		documentFields.removeAll(schemaFields);
 		
 		if(documentFields.isEmpty()) {
@@ -57,5 +66,19 @@ public class Document extends HashMap<String, Object> {
 		}
 		
 		return false;
+	}
+	
+	public JsonElement toJson() {
+		JsonObject json = new JsonObject();
+		for(String fieldName : keySet()) {
+			DocumentField field = this.get(fieldName);
+			json.add(fieldName, field.toJson());
+		}
+		return json;
+	}
+	
+	public String toString() {
+		JsonElement json = toJson();
+		return json.toString();
 	}
 }

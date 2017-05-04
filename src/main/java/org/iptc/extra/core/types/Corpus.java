@@ -4,6 +4,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
+import org.mongodb.morphia.annotations.Transient;
 
 @Entity("corpora")
 @XmlRootElement
@@ -15,6 +16,9 @@ public class Corpus {
 	protected String name;
 	
 	protected String schemaId;
+	
+	@Transient
+	protected Schema schema;
 	
 	protected long documents = 0;
 	
@@ -54,6 +58,14 @@ public class Corpus {
 		this.schemaId = schemaId;
 	}
 
+	public Schema getSchema() {
+		return schema;
+	}
+
+	public void setSchema(Schema schema) {
+		this.schema = schema;
+	}
+	
 	public long getDocuments() {
 		return documents;
 	}
