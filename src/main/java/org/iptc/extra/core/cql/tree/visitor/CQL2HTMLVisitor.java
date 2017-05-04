@@ -59,7 +59,7 @@ public class CQL2HTMLVisitor extends SyntaxTreeVisitor<String> {
 		}
 		buffer.append(visit(searchClause.getSearchTerms()));
 
-		buffer.append("</" + htmlTag + "> ");
+		buffer.append(") </" + htmlTag + "> ");
 		return buffer.toString();
 	}
 	
