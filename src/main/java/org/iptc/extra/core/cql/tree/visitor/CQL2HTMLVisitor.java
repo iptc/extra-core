@@ -1,6 +1,7 @@
 package org.iptc.extra.core.cql.tree.visitor;
 
 import org.iptc.extra.core.cql.tree.Clause;
+import org.iptc.extra.core.cql.tree.CommentClause;
 import org.iptc.extra.core.cql.tree.Index;
 import org.iptc.extra.core.cql.tree.Operator;
 import org.iptc.extra.core.cql.tree.PrefixClause;
@@ -60,6 +61,11 @@ public class CQL2HTMLVisitor extends SyntaxTreeVisitor<String> {
 
 		buffer.append("</" + htmlTag + "> ");
 		return buffer.toString();
+	}
+	
+	@Override
+	public String visitCommentClause(CommentClause commentClause) {
+		return "";
 	}
 	
 	@Override

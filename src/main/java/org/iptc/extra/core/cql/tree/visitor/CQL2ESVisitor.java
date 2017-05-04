@@ -87,16 +87,25 @@ public class CQL2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			String query = searchTerms.getSearchTerm();
 		
 			if(relation.is("any") || relation.is("=")) {
+				if(relation.hasModifier("stemming")) {
+					return matchQuery("stemmed_" + index.getName(), query);
+				}
 				return matchQuery(index.getName(), query);
 			}
 			else if (relation.is("==")) {
 				return termQuery(index.getName(), query);
 			}
 			else if (relation.is("all")) {
-				 MatchQueryBuilder qb = matchQuery(index.getName(), query);
-				 qb.operator(org.elasticsearch.index.query.Operator.AND);
+				MatchQueryBuilder qb;
+				if(relation.hasModifier("stemming")) {
+					qb = matchQuery("stemmed_" + index.getName(), query);
+				}
+				else {
+					qb = matchQuery(index.getName(), query);
+				}
+				qb.operator(org.elasticsearch.index.query.Operator.AND);
 				
-				 return qb;
+				return qb;
 			}
 			else if (relation.is("adj")) {
 				return matchPhraseQuery(index.getName(), query);

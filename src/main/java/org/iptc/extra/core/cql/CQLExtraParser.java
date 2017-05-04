@@ -271,5 +271,25 @@ public class CQLExtraParser {
 
 	}
 	
+	public static void main(String...args) {
+		CQLMapper mapper = new CQLMapper();
+		
+		String cql = "(and "
+				+ "(title any \"this is a test\")"
+				+ "(body adj \"phrase to match\")"
+				+ "(or "
+				+ "(title any \"term2\")"
+				+ "(title any/stemming \"term3\")"
+				+ "// this is a comment //"
+				+ ")"
+				+ ")";
+		
+		
+		SyntaxTree result = CQLExtraParser.parse(cql);
+		System.out.println(mapper.toString(result.getRootNode(), "\n", "\t"));
+		
+		System.out.println(mapper.toHtml(result.getRootNode(), "div"));
+		
+	}
 	
 }
