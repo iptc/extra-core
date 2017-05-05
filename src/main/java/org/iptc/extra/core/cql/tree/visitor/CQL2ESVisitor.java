@@ -52,7 +52,7 @@ public class CQL2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 
 			if(operator.hasModifier("countunique")) {
 				Modifier modifier = operator.getModifier("countunique");
-				if(modifier.isComparitorLT() || modifier.isComparitorLTE()) {
+				if(modifier.isComparitorGT() || modifier.isComparitorGTE()) {
 						booleanQb.minimumShouldMatch(modifier.getValue());
 				}
 			}
