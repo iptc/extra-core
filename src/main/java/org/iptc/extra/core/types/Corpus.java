@@ -16,22 +16,29 @@ public class Corpus {
 	protected String name;
 	
 	protected String schemaId;
-	
-	@Transient
+
+	@Transient 
 	protected Schema schema;
 	
-	protected long documents = 0;
+	protected String taxonomyId;
 	
+	@Transient 
+	protected Taxonomy taxonomy;
+	
+	protected String language;
+	
+	protected long documents = 0;
 	
 	public Corpus() {
 		
 	}
 	
-	public Corpus(String id, String name, String schemaId) {
+	public Corpus(String id, String name, String schemaId, String taxonomyId) {
 		super();
 		this.id = id;
 		this.name = name;
 		this.schemaId = schemaId;
+		this.taxonomyId = taxonomyId;
 	}
 
 	public String getId() {
@@ -66,6 +73,30 @@ public class Corpus {
 		this.schema = schema;
 	}
 	
+	public String getTaxonomyId() {
+		return taxonomyId;
+	}
+
+	public void setTaxonomyId(String taxonomyId) {
+		this.taxonomyId = taxonomyId;
+	}
+
+	public Taxonomy getTaxonomy() {
+		return taxonomy;
+	}
+
+	public void setTaxonomy(Taxonomy taxonomy) {
+		this.taxonomy = taxonomy;
+	}
+	
+	public String getLanguage() {
+		return language;
+	}
+
+	public void setLanguage(String language) {
+		this.language = language;
+	}
+
 	public long getDocuments() {
 		return documents;
 	}
