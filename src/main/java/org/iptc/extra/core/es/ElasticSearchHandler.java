@@ -161,7 +161,7 @@ public class ElasticSearchHandler {
 					String bodyValue = source.get("body").getAsString();
 					bodyField.setValue(bodyValue);
 					
-					JsonArray paragraphsArray = highlight.getAsJsonArray("body_paragraphs");
+					JsonArray paragraphsArray = source.getAsJsonArray("body_paragraphs");
 					for(JsonElement paragraphElement : paragraphsArray) {
 						String paragraph = paragraphElement.getAsJsonObject().get("paragraph").getAsString();
 						bodyField.addParagraph(paragraph);
