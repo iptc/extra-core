@@ -18,6 +18,15 @@ public class TextField extends DocumentField {
 		this.paragraphs = paragraphs;
 	}
 	
+	public List<Sentence> getSentences() {
+		List<Sentence> sentences = new ArrayList<Sentence>();
+		for(Paragraph paragraph : paragraphs) {
+			List<Sentence> paragraphSentences = paragraph.getSentences();
+			sentences.addAll(paragraphSentences);
+		}
+		return sentences;
+	}
+	
 	public String getValue() {
 		StringBuffer buffer = new StringBuffer();
 		for(Paragraph paragraph : paragraphs) {
