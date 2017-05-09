@@ -15,7 +15,16 @@ public class TextField extends DocumentField {
 	}
 
 	public void setParagraphs(List<Paragraph> paragraphs) {
-		this.paragraphs = paragraphs;
+		this.paragraphs.addAll(paragraphs);
+	}
+	
+	public void addParagraph(Paragraph paragraph) {
+		this.paragraphs.add(paragraph);
+	}
+	
+	public void addParagraph(String paragraph) {
+		Paragraph p = new Paragraph(paragraph);
+		this.paragraphs.add(p);
 	}
 	
 	public List<Sentence> getSentences() {

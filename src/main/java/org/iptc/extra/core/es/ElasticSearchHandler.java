@@ -21,6 +21,7 @@ import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.iptc.extra.core.types.document.Document;
+import org.iptc.extra.core.types.document.TextField;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -154,7 +155,24 @@ public class ElasticSearchHandler {
 			}
 			
 			if(source.has("body")) {
-				doc.addField("body", source.get("body").getAsString());
+				if(source.has("body_paragraphs")) {
+					TextField bodyField = new TextField();
+					
+					String bodyValue = source.get("body").getAsString();
+					bodyField.setValue(bodyValue);
+					
+					JsonArray paragraphsArray = highlight.getAsJsonArray("body_paragraphs");
+					for(JsonElement paragraphElement : paragraphsArray) {
+						String paragraph = paragraphElement.getAsJsonObject().get("paragraph").getAsString();
+						bodyField.addParagraph(paragraph);
+					}
+					
+					doc.addField("body", bodyField);
+				}
+				else {
+					doc.addField("body", source.get("body").getAsString());
+				}
+				
 				if(highlight.has("body")) {
 					JsonArray ar = highlight.getAsJsonArray("body");
 					if(ar.size() > 0) {
@@ -162,6 +180,8 @@ public class ElasticSearchHandler {
 					}
 				}
 			}
+			
+			
 			
 			doc.addField("versionCreated", source.get("versionCreated").getAsString());
 			doc.addField("slugline", source.get("slugline").getAsString());

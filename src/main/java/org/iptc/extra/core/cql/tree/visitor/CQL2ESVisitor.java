@@ -141,7 +141,7 @@ public class CQL2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 
 	@Override
 	public QueryBuilder visitSearchTerms(SearchTerms searchTerm) {
-		QueryBuilder qb = matchQuery("_all", searchTerm.getSearchTerm());
+		QueryBuilder qb = matchQuery("stemmed_text_content", searchTerm.getSearchTerm());
 		return qb;
 	}
 }
