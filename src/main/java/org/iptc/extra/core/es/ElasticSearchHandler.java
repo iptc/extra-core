@@ -53,7 +53,7 @@ public class ElasticSearchHandler {
 		
 		HttpEntity entity = new NStringEntity(queryObject.toString(), ContentType.APPLICATION_JSON);
 		
-		String endpoint = indexName + "/articles/_search";
+		String endpoint = indexName + "/documents/_search";
 		Response response = restClient.performRequest(
 				"POST", endpoint, 
 				Collections.<String, String>emptyMap(), 
@@ -86,6 +86,7 @@ public class ElasticSearchHandler {
 				JsonObject fragment = new JsonObject();
 				fragment.add("fragment_size", new JsonPrimitive(0));
 				fragment.add("number_of_fragments", new JsonPrimitive(0));
+				fragment.add("require_field_match", new JsonPrimitive(false));
 				
 				field.add(hf, fragment);
 				fields.add(field);
@@ -107,7 +108,7 @@ public class ElasticSearchHandler {
 		
 		HttpEntity entity = new NStringEntity(queryObject.toString(), ContentType.APPLICATION_JSON);
 		
-		String endpoint = indexName + "/articles/_search";
+		String endpoint = indexName + "/documents/_search";
 		Response response = restClient.performRequest(
 				"POST", endpoint, 
 				Collections.<String, String>emptyMap(), 
@@ -132,24 +133,37 @@ public class ElasticSearchHandler {
 			Document doc = new Document();
 			doc.setId(source.get("id").getAsString());
 				
-			doc.addField("title", source.get("title").getAsString());
-			if(highlight.has("title")) {
-				JsonArray ar = highlight.getAsJsonArray("title");
-				if(ar.size() > 0) {
-					doc.addField("title", ar.get(0).getAsString());
+			if(source.has("title")) {
+				doc.addField("title", source.get("title").getAsString());
+				if(highlight.has("title")) {
+					JsonArray ar = highlight.getAsJsonArray("title");
+					if(ar.size() > 0) {
+						doc.addField("title", ar.get(0).getAsString());
+					}
 				}
 			}
 			
-			doc.addField("description", source.get("description").getAsString());
-			doc.addField("body", source.get("body").getAsString());
-			if(highlight.has("body")) {
-				JsonArray ar = highlight.getAsJsonArray("body");
-				if(ar.size() > 0) {
-					doc.addField("body", ar.get(0).getAsString());
+			if(source.has("headline")) {
+				doc.addField("headline", source.get("headline").getAsString());
+				if(highlight.has("headline")) {
+					JsonArray ar = highlight.getAsJsonArray("headline");
+					if(ar.size() > 0) {
+						doc.addField("headline", ar.get(0).getAsString());
+					}
 				}
 			}
 			
-			doc.addField("contentCreated", source.get("contentCreated").getAsString());
+			if(source.has("body")) {
+				doc.addField("body", source.get("body").getAsString());
+				if(highlight.has("body")) {
+					JsonArray ar = highlight.getAsJsonArray("body");
+					if(ar.size() > 0) {
+						doc.addField("body", ar.get(0).getAsString());
+					}
+				}
+			}
+			
+			doc.addField("versionCreated", source.get("versionCreated").getAsString());
 			doc.addField("slugline", source.get("slugline").getAsString());
 
 			documents.add(doc);
