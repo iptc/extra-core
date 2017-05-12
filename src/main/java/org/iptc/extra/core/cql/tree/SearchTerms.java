@@ -6,7 +6,9 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
 public class SearchTerms extends Node {
-
+	
+	private static String[] regex =  {".", "?", "+", "*", "|", "{", "}", "[", "]", "(", ")", "\"", "\\"};
+	
 	private List<String> terms = new ArrayList<String>();
 
 	public SearchTerms() {
@@ -26,7 +28,12 @@ public class SearchTerms extends Node {
 	}
 	
 	public String getSearchTerm() {
-		return StringUtils.join(terms, " ");
+		String searchTerm = StringUtils.join(terms, " ");
+		if(searchTerm != null && searchTerm.contains("/")) {
+			searchTerm = searchTerm.replaceAll(" / ", "/");
+		}
+		
+		return searchTerm;
 	}
 
 	@Override
@@ -36,7 +43,7 @@ public class SearchTerms extends Node {
 	
 	@Override
 	public String toString() {
-		return "\"" + StringUtils.join(terms, " ") + "\"";
+		return "\"" + getSearchTerm() + "\"";
 	}
 	
 	public int numberOfTerms() {
@@ -45,5 +52,16 @@ public class SearchTerms extends Node {
 	
 	public String getTerm(int index) {
 		return terms.get(index);
+	}
+	
+	public boolean hasWildcards() {
+		for(String term : terms) {
+			for(String regexCharacter : regex) {
+				if(term.contains(regexCharacter)) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 }

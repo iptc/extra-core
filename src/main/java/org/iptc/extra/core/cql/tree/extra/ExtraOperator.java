@@ -75,7 +75,7 @@ public enum ExtraOperator {
 					
 					// word-level distances
 					if(unitModifier.isComparitorEQ() && unitModifier.valueEquals("word")) {
-						if(distanceModifier.isComparitorLTE()) {
+						if(distanceModifier.isComparitorLTE() || distanceModifier.isComparitorLT()) {
 							if(operator.hasModifier("ordered")) {
 								return ORDER_AND_DISTANCE;
 							}

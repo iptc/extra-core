@@ -10,6 +10,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.lang3.StringUtils;
 import org.iptc.extra.core.cql.parsers.CqlBaseVisitor;
@@ -19,6 +20,7 @@ import org.iptc.extra.core.cql.parsers.CqlParser.ModifierContext;
 import org.iptc.extra.core.cql.parsers.CqlParser.StatementContext;
 import org.iptc.extra.core.cql.tree.Clause;
 import org.iptc.extra.core.cql.tree.CommentClause;
+import org.iptc.extra.core.cql.tree.ErrorMessageNode;
 import org.iptc.extra.core.cql.tree.Index;
 import org.iptc.extra.core.cql.tree.Modifier;
 import org.iptc.extra.core.cql.tree.Node;
@@ -40,23 +42,43 @@ public class CQLExtraParser {
 			
 			@Override 
 			public Node visitPrefixClause(CqlParser.PrefixClauseContext ctx) { 
-			
+				
 				PrefixClause prefixClause = new PrefixClause();
 				
 				prefixClause.setDepth(depth);
 				depth++;
 				
+				for(ParseTree child : ctx.children) {
+					if(child instanceof ErrorNode) {
+						Node node = visit(child);
+						if(node != null && node instanceof ErrorNode) {
+							prefixClause.addError(node);
+						}
+					}
+				}
+				
 				Node operator = visit(ctx.booleanOp()); 
 				operator.setParent(prefixClause);
+				
+				ExtraOperator extraOperator = ExtraOperator.getExtraOperator((Operator) operator);
+				prefixClause.setExtraOperator(extraOperator);
 				
 				prefixClause.setOperator((Operator) operator);
 				
 				List<Clause> clauses = new ArrayList<Clause>();
 				for(StatementContext statement : ctx.statement()) {
-					Node clause = visit(statement); 
-					clause.setParent(prefixClause);
+					Node node = visit(statement); 
+					if(node == null) {
+						continue;
+					}	
+					node.setParent(prefixClause);
 					
-					clauses.add((Clause) clause);
+					if(node instanceof Clause) {
+						clauses.add((Clause) node);
+					}
+					else if(node instanceof ErrorNode) {
+						prefixClause.addError(node);
+					}
 				}
 				prefixClause.setClauses(clauses);
 				
@@ -201,6 +223,16 @@ public class CQLExtraParser {
 				
 				return searchTerms;
 			}
+			
+			@Override
+			public Node visitErrorNode(ErrorNode node) {
+				ErrorMessageNode errorMsgNode = new ErrorMessageNode();
+				errorMsgNode.setErrorMessage(node.getText());
+				errorMsgNode.setDepth(depth);
+
+				return errorMsgNode;
+			}
+
 		};
 		
 		Node root = visitor.visit(tree);
@@ -225,9 +257,12 @@ public class CQLExtraParser {
 		SyntaxTree syntaxTree = new SyntaxTree();
 		syntaxTree.setErrors(errorListener.getErrors());
 		
-		if(!syntaxTree.hasErrors()) {
+		try {
 			Node root = getRootNode(tree);
 			syntaxTree.setRootNode(root);
+		}
+		catch(Exception e) {
+			System.out.println(e.getMessage());
 		}
 		
 		return syntaxTree;

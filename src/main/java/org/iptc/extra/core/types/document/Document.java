@@ -19,22 +19,22 @@ public class Document extends HashMap<String, DocumentField> {
 	 */
 	private static final long serialVersionUID = -2274574518570705042L;
 
+	private String id;
+	
 	public Document() {
 		
 	}
 	
 	public Document(String id) {
-		DocumentField idField = new DocumentField(id);
-		this.put("id", idField);
+		this.id = id;
 	}
 
 	public String getId() {
-		return this.get("id").getValue();
+		return this.id;
 	}
 
 	public void setId(String id) {
-		DocumentField idField = new DocumentField(id);
-		this.put("id", idField);
+		this.id = id;
 	}
 	
 	public void addField(String key, DocumentField value) {
@@ -42,7 +42,7 @@ public class Document extends HashMap<String, DocumentField> {
 	}
 	
 	public void addField(String key, String value) {
-		DocumentField field = new DocumentField(value);
+		DocumentField field = new TextField(value);
 		this.put(key, field);
 	}
 	

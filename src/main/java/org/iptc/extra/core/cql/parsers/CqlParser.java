@@ -101,6 +101,7 @@ public class CqlParser extends Parser {
 		public StatementContext statement(int i) {
 			return getRuleContext(StatementContext.class,i);
 		}
+		public TerminalNode EOF() { return getToken(CqlParser.EOF, 0); }
 		public PrefixClauseContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -144,9 +145,18 @@ public class CqlParser extends Parser {
 				setState(35); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-			} while ( (((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__0) | (1L << T__2) | (1L << T__11) | (1L << CHARS))) != 0) );
+			} while ( _la==T__0 || _la==T__2 );
 			setState(37);
 			match(T__1);
+			setState(39);
+			_la = _input.LA(1);
+			if (_la==EOF) {
+				{
+				setState(38);
+				match(EOF);
+				}
+			}
+
 			}
 		}
 		catch (RecognitionException re) {
@@ -193,27 +203,27 @@ public class CqlParser extends Parser {
 		StatementContext _localctx = new StatementContext(_ctx, getState());
 		enterRule(_localctx, 2, RULE_statement);
 		try {
-			setState(42);
+			setState(44);
 			_errHandler.sync(this);
-			switch ( getInterpreter().adaptivePredict(_input,1,_ctx) ) {
+			switch ( getInterpreter().adaptivePredict(_input,2,_ctx) ) {
 			case 1:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(39);
+				setState(41);
 				prefixClause();
 				}
 				break;
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(40);
+				setState(42);
 				searchClause();
 				}
 				break;
 			case 3:
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(41);
+				setState(43);
 				commentClause();
 				}
 				break;
@@ -262,18 +272,18 @@ public class CqlParser extends Parser {
 		enterRule(_localctx, 4, RULE_booleanOp);
 		int _la;
 		try {
-			setState(60);
+			setState(62);
 			switch (_input.LA(1)) {
 			case AND:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(44);
-				match(AND);
 				setState(46);
+				match(AND);
+				setState(48);
 				_la = _input.LA(1);
 				if (_la==T__3) {
 					{
-					setState(45);
+					setState(47);
 					modifierList();
 					}
 				}
@@ -283,13 +293,13 @@ public class CqlParser extends Parser {
 			case OR:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(48);
-				match(OR);
 				setState(50);
+				match(OR);
+				setState(52);
 				_la = _input.LA(1);
 				if (_la==T__3) {
 					{
-					setState(49);
+					setState(51);
 					modifierList();
 					}
 				}
@@ -299,13 +309,13 @@ public class CqlParser extends Parser {
 			case NOT:
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(52);
-				match(NOT);
 				setState(54);
+				match(NOT);
+				setState(56);
 				_la = _input.LA(1);
 				if (_la==T__3) {
 					{
-					setState(53);
+					setState(55);
 					modifierList();
 					}
 				}
@@ -315,13 +325,13 @@ public class CqlParser extends Parser {
 			case PROX:
 				enterOuterAlt(_localctx, 4);
 				{
-				setState(56);
-				match(PROX);
 				setState(58);
+				match(PROX);
+				setState(60);
 				_la = _input.LA(1);
 				if (_la==T__3) {
 					{
-					setState(57);
+					setState(59);
 					modifierList();
 					}
 				}
@@ -376,53 +386,26 @@ public class CqlParser extends Parser {
 		SearchClauseContext _localctx = new SearchClauseContext(_ctx, getState());
 		enterRule(_localctx, 6, RULE_searchClause);
 		try {
-			setState(77);
-			switch (_input.LA(1)) {
-			case T__11:
-			case CHARS:
-				enterOuterAlt(_localctx, 1);
+			enterOuterAlt(_localctx, 1);
+			{
+			setState(64);
+			match(T__0);
+			setState(68);
+			_errHandler.sync(this);
+			switch ( getInterpreter().adaptivePredict(_input,8,_ctx) ) {
+			case 1:
 				{
 				setState(65);
-				_errHandler.sync(this);
-				switch ( getInterpreter().adaptivePredict(_input,7,_ctx) ) {
-				case 1:
-					{
-					setState(62);
-					index();
-					setState(63);
-					relation();
-					}
-					break;
-				}
-				setState(67);
-				searchTerm();
+				index();
+				setState(66);
+				relation();
 				}
 				break;
-			case T__0:
-				enterOuterAlt(_localctx, 2);
-				{
-				setState(68);
-				match(T__0);
-				setState(72);
-				_errHandler.sync(this);
-				switch ( getInterpreter().adaptivePredict(_input,8,_ctx) ) {
-				case 1:
-					{
-					setState(69);
-					index();
-					setState(70);
-					relation();
-					}
-					break;
-				}
-				setState(74);
-				searchTerm();
-				setState(75);
-				match(T__1);
-				}
-				break;
-			default:
-				throw new NoViableAltException(this);
+			}
+			setState(70);
+			searchTerm();
+			setState(71);
+			match(T__1);
 			}
 		}
 		catch (RecognitionException re) {
@@ -459,33 +442,32 @@ public class CqlParser extends Parser {
 	public final CommentClauseContext commentClause() throws RecognitionException {
 		CommentClauseContext _localctx = new CommentClauseContext(_ctx, getState());
 		enterRule(_localctx, 8, RULE_commentClause);
+		int _la;
 		try {
-			int _alt;
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(79);
+			setState(73);
 			match(T__2);
-			setState(81); 
+			setState(75); 
 			_errHandler.sync(this);
-			_alt = 1+1;
+			_la = _input.LA(1);
 			do {
-				switch (_alt) {
-				case 1+1:
-					{
-					{
-					setState(80);
-					matchWildcard();
-					}
-					}
-					break;
-				default:
-					throw new NoViableAltException(this);
+				{
+				{
+				setState(74);
+				_la = _input.LA(1);
+				if ( _la <= 0 || (_la==T__2) ) {
+				_errHandler.recoverInline(this);
+				} else {
+					consume();
 				}
-				setState(83); 
+				}
+				}
+				setState(77); 
 				_errHandler.sync(this);
-				_alt = getInterpreter().adaptivePredict(_input,10,_ctx);
-			} while ( _alt!=1 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER );
-			setState(85);
+				_la = _input.LA(1);
+			} while ( (((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__0) | (1L << T__1) | (1L << T__3) | (1L << T__4) | (1L << T__5) | (1L << T__6) | (1L << T__7) | (1L << T__8) | (1L << T__9) | (1L << T__10) | (1L << T__11) | (1L << AND) | (1L << OR) | (1L << NOT) | (1L << PROX) | (1L << CHARS) | (1L << WS))) != 0) );
+			setState(79);
 			match(T__2);
 			}
 		}
@@ -533,13 +515,13 @@ public class CqlParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(87);
+			setState(81);
 			comparitor();
-			setState(89);
+			setState(83);
 			_la = _input.LA(1);
 			if (_la==T__3) {
 				{
-				setState(88);
+				setState(82);
 				modifierList();
 				}
 			}
@@ -590,17 +572,17 @@ public class CqlParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(92); 
+			setState(86); 
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			do {
 				{
 				{
-				setState(91);
+				setState(85);
 				modifier();
 				}
 				}
-				setState(94); 
+				setState(88); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			} while ( _la==T__3 );
@@ -653,17 +635,17 @@ public class CqlParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(96);
+			setState(90);
 			match(T__3);
-			setState(97);
+			setState(91);
 			modifierName();
-			setState(101);
+			setState(95);
 			_la = _input.LA(1);
 			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__4) | (1L << T__5) | (1L << T__6) | (1L << T__7) | (1L << T__8) | (1L << T__9) | (1L << T__10))) != 0)) {
 				{
-				setState(98);
+				setState(92);
 				comparitorSymbol();
-				setState(99);
+				setState(93);
 				modifierValue();
 				}
 			}
@@ -711,7 +693,7 @@ public class CqlParser extends Parser {
 		ComparitorContext _localctx = new ComparitorContext(_ctx, getState());
 		enterRule(_localctx, 16, RULE_comparitor);
 		try {
-			setState(105);
+			setState(99);
 			switch (_input.LA(1)) {
 			case T__4:
 			case T__5:
@@ -722,14 +704,14 @@ public class CqlParser extends Parser {
 			case T__10:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(103);
+				setState(97);
 				comparitorSymbol();
 				}
 				break;
 			case CHARS:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(104);
+				setState(98);
 				namedComparitor();
 				}
 				break;
@@ -779,7 +761,7 @@ public class CqlParser extends Parser {
 			int _alt;
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(108); 
+			setState(102); 
 			_errHandler.sync(this);
 			_alt = 1;
 			do {
@@ -787,7 +769,7 @@ public class CqlParser extends Parser {
 				case 1:
 					{
 					{
-					setState(107);
+					setState(101);
 					match(CHARS);
 					}
 					}
@@ -795,9 +777,9 @@ public class CqlParser extends Parser {
 				default:
 					throw new NoViableAltException(this);
 				}
-				setState(110); 
+				setState(104); 
 				_errHandler.sync(this);
-				_alt = getInterpreter().adaptivePredict(_input,15,_ctx);
+				_alt = getInterpreter().adaptivePredict(_input,14,_ctx);
 			} while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER );
 			}
 		}
@@ -839,7 +821,7 @@ public class CqlParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(112);
+			setState(106);
 			_la = _input.LA(1);
 			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__4) | (1L << T__5) | (1L << T__6) | (1L << T__7) | (1L << T__8) | (1L << T__9) | (1L << T__10))) != 0)) ) {
 			_errHandler.recoverInline(this);
@@ -886,7 +868,7 @@ public class CqlParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(114);
+			setState(108);
 			match(CHARS);
 			}
 		}
@@ -928,7 +910,7 @@ public class CqlParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(116);
+			setState(110);
 			match(CHARS);
 			}
 		}
@@ -969,27 +951,27 @@ public class CqlParser extends Parser {
 		enterRule(_localctx, 26, RULE_searchTerm);
 		int _la;
 		try {
-			setState(126);
+			setState(120);
 			switch (_input.LA(1)) {
 			case CHARS:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(118);
+				setState(112);
 				match(CHARS);
 				}
 				break;
 			case T__11:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(119);
+				setState(113);
 				match(T__11);
-				setState(121); 
+				setState(115); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 				do {
 					{
 					{
-					setState(120);
+					setState(114);
 					_la = _input.LA(1);
 					if ( _la <= 0 || (_la==T__11) ) {
 					_errHandler.recoverInline(this);
@@ -998,11 +980,11 @@ public class CqlParser extends Parser {
 					}
 					}
 					}
-					setState(123); 
+					setState(117); 
 					_errHandler.sync(this);
 					_la = _input.LA(1);
 				} while ( (((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__0) | (1L << T__1) | (1L << T__2) | (1L << T__3) | (1L << T__4) | (1L << T__5) | (1L << T__6) | (1L << T__7) | (1L << T__8) | (1L << T__9) | (1L << T__10) | (1L << AND) | (1L << OR) | (1L << NOT) | (1L << PROX) | (1L << CHARS) | (1L << WS))) != 0) );
-				setState(125);
+				setState(119);
 				match(T__11);
 				}
 				break;
@@ -1048,7 +1030,7 @@ public class CqlParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(128);
+			setState(122);
 			match(CHARS);
 			}
 		}
@@ -1064,40 +1046,37 @@ public class CqlParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3\24\u0085\4\2\t\2"+
-		"\4\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\4\t\t\t\4\n\t\n\4\13"+
-		"\t\13\4\f\t\f\4\r\t\r\4\16\t\16\4\17\t\17\4\20\t\20\3\2\3\2\3\2\6\2$\n"+
-		"\2\r\2\16\2%\3\2\3\2\3\3\3\3\3\3\5\3-\n\3\3\4\3\4\5\4\61\n\4\3\4\3\4\5"+
-		"\4\65\n\4\3\4\3\4\5\49\n\4\3\4\3\4\5\4=\n\4\5\4?\n\4\3\5\3\5\3\5\5\5D"+
-		"\n\5\3\5\3\5\3\5\3\5\3\5\5\5K\n\5\3\5\3\5\3\5\5\5P\n\5\3\6\3\6\6\6T\n"+
-		"\6\r\6\16\6U\3\6\3\6\3\7\3\7\5\7\\\n\7\3\b\6\b_\n\b\r\b\16\b`\3\t\3\t"+
-		"\3\t\3\t\3\t\5\th\n\t\3\n\3\n\5\nl\n\n\3\13\6\13o\n\13\r\13\16\13p\3\f"+
-		"\3\f\3\r\3\r\3\16\3\16\3\17\3\17\3\17\6\17|\n\17\r\17\16\17}\3\17\5\17"+
-		"\u0081\n\17\3\20\3\20\3\20\3U\2\21\2\4\6\b\n\f\16\20\22\24\26\30\32\34"+
-		"\36\2\4\3\2\7\r\3\2\16\16\u008a\2 \3\2\2\2\4,\3\2\2\2\6>\3\2\2\2\bO\3"+
-		"\2\2\2\nQ\3\2\2\2\fY\3\2\2\2\16^\3\2\2\2\20b\3\2\2\2\22k\3\2\2\2\24n\3"+
-		"\2\2\2\26r\3\2\2\2\30t\3\2\2\2\32v\3\2\2\2\34\u0080\3\2\2\2\36\u0082\3"+
-		"\2\2\2 !\7\3\2\2!#\5\6\4\2\"$\5\4\3\2#\"\3\2\2\2$%\3\2\2\2%#\3\2\2\2%"+
-		"&\3\2\2\2&\'\3\2\2\2\'(\7\4\2\2(\3\3\2\2\2)-\5\2\2\2*-\5\b\5\2+-\5\n\6"+
-		"\2,)\3\2\2\2,*\3\2\2\2,+\3\2\2\2-\5\3\2\2\2.\60\7\17\2\2/\61\5\16\b\2"+
-		"\60/\3\2\2\2\60\61\3\2\2\2\61?\3\2\2\2\62\64\7\20\2\2\63\65\5\16\b\2\64"+
-		"\63\3\2\2\2\64\65\3\2\2\2\65?\3\2\2\2\668\7\21\2\2\679\5\16\b\28\67\3"+
-		"\2\2\289\3\2\2\29?\3\2\2\2:<\7\22\2\2;=\5\16\b\2<;\3\2\2\2<=\3\2\2\2="+
-		"?\3\2\2\2>.\3\2\2\2>\62\3\2\2\2>\66\3\2\2\2>:\3\2\2\2?\7\3\2\2\2@A\5\36"+
-		"\20\2AB\5\f\7\2BD\3\2\2\2C@\3\2\2\2CD\3\2\2\2DE\3\2\2\2EP\5\34\17\2FJ"+
-		"\7\3\2\2GH\5\36\20\2HI\5\f\7\2IK\3\2\2\2JG\3\2\2\2JK\3\2\2\2KL\3\2\2\2"+
-		"LM\5\34\17\2MN\7\4\2\2NP\3\2\2\2OC\3\2\2\2OF\3\2\2\2P\t\3\2\2\2QS\7\5"+
-		"\2\2RT\13\2\2\2SR\3\2\2\2TU\3\2\2\2UV\3\2\2\2US\3\2\2\2VW\3\2\2\2WX\7"+
-		"\5\2\2X\13\3\2\2\2Y[\5\22\n\2Z\\\5\16\b\2[Z\3\2\2\2[\\\3\2\2\2\\\r\3\2"+
-		"\2\2]_\5\20\t\2^]\3\2\2\2_`\3\2\2\2`^\3\2\2\2`a\3\2\2\2a\17\3\2\2\2bc"+
-		"\7\6\2\2cg\5\30\r\2de\5\26\f\2ef\5\32\16\2fh\3\2\2\2gd\3\2\2\2gh\3\2\2"+
-		"\2h\21\3\2\2\2il\5\26\f\2jl\5\24\13\2ki\3\2\2\2kj\3\2\2\2l\23\3\2\2\2"+
-		"mo\7\23\2\2nm\3\2\2\2op\3\2\2\2pn\3\2\2\2pq\3\2\2\2q\25\3\2\2\2rs\t\2"+
-		"\2\2s\27\3\2\2\2tu\7\23\2\2u\31\3\2\2\2vw\7\23\2\2w\33\3\2\2\2x\u0081"+
-		"\7\23\2\2y{\7\16\2\2z|\n\3\2\2{z\3\2\2\2|}\3\2\2\2}{\3\2\2\2}~\3\2\2\2"+
-		"~\177\3\2\2\2\177\u0081\7\16\2\2\u0080x\3\2\2\2\u0080y\3\2\2\2\u0081\35"+
-		"\3\2\2\2\u0082\u0083\7\23\2\2\u0083\37\3\2\2\2\24%,\60\648<>CJOU[`gkp"+
-		"}\u0080";
+		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3\24\177\4\2\t\2\4"+
+		"\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\4\t\t\t\4\n\t\n\4\13\t"+
+		"\13\4\f\t\f\4\r\t\r\4\16\t\16\4\17\t\17\4\20\t\20\3\2\3\2\3\2\6\2$\n\2"+
+		"\r\2\16\2%\3\2\3\2\5\2*\n\2\3\3\3\3\3\3\5\3/\n\3\3\4\3\4\5\4\63\n\4\3"+
+		"\4\3\4\5\4\67\n\4\3\4\3\4\5\4;\n\4\3\4\3\4\5\4?\n\4\5\4A\n\4\3\5\3\5\3"+
+		"\5\3\5\5\5G\n\5\3\5\3\5\3\5\3\6\3\6\6\6N\n\6\r\6\16\6O\3\6\3\6\3\7\3\7"+
+		"\5\7V\n\7\3\b\6\bY\n\b\r\b\16\bZ\3\t\3\t\3\t\3\t\3\t\5\tb\n\t\3\n\3\n"+
+		"\5\nf\n\n\3\13\6\13i\n\13\r\13\16\13j\3\f\3\f\3\r\3\r\3\16\3\16\3\17\3"+
+		"\17\3\17\6\17v\n\17\r\17\16\17w\3\17\5\17{\n\17\3\20\3\20\3\20\2\2\21"+
+		"\2\4\6\b\n\f\16\20\22\24\26\30\32\34\36\2\5\3\2\5\5\3\2\7\r\3\2\16\16"+
+		"\u0083\2 \3\2\2\2\4.\3\2\2\2\6@\3\2\2\2\bB\3\2\2\2\nK\3\2\2\2\fS\3\2\2"+
+		"\2\16X\3\2\2\2\20\\\3\2\2\2\22e\3\2\2\2\24h\3\2\2\2\26l\3\2\2\2\30n\3"+
+		"\2\2\2\32p\3\2\2\2\34z\3\2\2\2\36|\3\2\2\2 !\7\3\2\2!#\5\6\4\2\"$\5\4"+
+		"\3\2#\"\3\2\2\2$%\3\2\2\2%#\3\2\2\2%&\3\2\2\2&\'\3\2\2\2\')\7\4\2\2(*"+
+		"\7\2\2\3)(\3\2\2\2)*\3\2\2\2*\3\3\2\2\2+/\5\2\2\2,/\5\b\5\2-/\5\n\6\2"+
+		".+\3\2\2\2.,\3\2\2\2.-\3\2\2\2/\5\3\2\2\2\60\62\7\17\2\2\61\63\5\16\b"+
+		"\2\62\61\3\2\2\2\62\63\3\2\2\2\63A\3\2\2\2\64\66\7\20\2\2\65\67\5\16\b"+
+		"\2\66\65\3\2\2\2\66\67\3\2\2\2\67A\3\2\2\28:\7\21\2\29;\5\16\b\2:9\3\2"+
+		"\2\2:;\3\2\2\2;A\3\2\2\2<>\7\22\2\2=?\5\16\b\2>=\3\2\2\2>?\3\2\2\2?A\3"+
+		"\2\2\2@\60\3\2\2\2@\64\3\2\2\2@8\3\2\2\2@<\3\2\2\2A\7\3\2\2\2BF\7\3\2"+
+		"\2CD\5\36\20\2DE\5\f\7\2EG\3\2\2\2FC\3\2\2\2FG\3\2\2\2GH\3\2\2\2HI\5\34"+
+		"\17\2IJ\7\4\2\2J\t\3\2\2\2KM\7\5\2\2LN\n\2\2\2ML\3\2\2\2NO\3\2\2\2OM\3"+
+		"\2\2\2OP\3\2\2\2PQ\3\2\2\2QR\7\5\2\2R\13\3\2\2\2SU\5\22\n\2TV\5\16\b\2"+
+		"UT\3\2\2\2UV\3\2\2\2V\r\3\2\2\2WY\5\20\t\2XW\3\2\2\2YZ\3\2\2\2ZX\3\2\2"+
+		"\2Z[\3\2\2\2[\17\3\2\2\2\\]\7\6\2\2]a\5\30\r\2^_\5\26\f\2_`\5\32\16\2"+
+		"`b\3\2\2\2a^\3\2\2\2ab\3\2\2\2b\21\3\2\2\2cf\5\26\f\2df\5\24\13\2ec\3"+
+		"\2\2\2ed\3\2\2\2f\23\3\2\2\2gi\7\23\2\2hg\3\2\2\2ij\3\2\2\2jh\3\2\2\2"+
+		"jk\3\2\2\2k\25\3\2\2\2lm\t\3\2\2m\27\3\2\2\2no\7\23\2\2o\31\3\2\2\2pq"+
+		"\7\23\2\2q\33\3\2\2\2r{\7\23\2\2su\7\16\2\2tv\n\4\2\2ut\3\2\2\2vw\3\2"+
+		"\2\2wu\3\2\2\2wx\3\2\2\2xy\3\2\2\2y{\7\16\2\2zr\3\2\2\2zs\3\2\2\2{\35"+
+		"\3\2\2\2|}\7\23\2\2}\37\3\2\2\2\23%).\62\66:>@FOUZaejwz";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {

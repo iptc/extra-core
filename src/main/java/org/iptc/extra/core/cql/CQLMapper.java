@@ -4,9 +4,9 @@ package org.iptc.extra.core.cql;
 import org.elasticsearch.index.query.QueryBuilder;
 
 import org.iptc.extra.core.cql.tree.Node;
-import org.iptc.extra.core.cql.tree.visitor.CQL2ESVisitor;
 import org.iptc.extra.core.cql.tree.visitor.CQL2HTMLVisitor;
 import org.iptc.extra.core.cql.tree.visitor.CQL2JSTreeVisitor;
+import org.iptc.extra.core.cql.tree.visitor.EXTRA2ESVisitor;
 import org.iptc.extra.core.cql.tree.visitor.PretifyVisitor;
 
 public class CQLMapper {
@@ -15,8 +15,9 @@ public class CQLMapper {
 		if(root == null) {
 			return null;
 		}	
+
+		EXTRA2ESVisitor visitor = new EXTRA2ESVisitor();
 		
-		CQL2ESVisitor visitor = new CQL2ESVisitor();	
 		QueryBuilder qb = visitor.visit(root);
 		
 		return qb;

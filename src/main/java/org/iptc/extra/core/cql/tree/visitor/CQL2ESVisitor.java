@@ -3,10 +3,14 @@ package org.iptc.extra.core.cql.tree.visitor;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.elasticsearch.index.query.RangeQueryBuilder;
+import org.elasticsearch.index.query.WildcardQueryBuilder;
 import org.iptc.extra.core.cql.tree.Clause;
 import org.iptc.extra.core.cql.tree.Index;
 import org.iptc.extra.core.cql.tree.Modifier;
@@ -15,6 +19,7 @@ import org.iptc.extra.core.cql.tree.PrefixClause;
 import org.iptc.extra.core.cql.tree.Relation;
 import org.iptc.extra.core.cql.tree.SearchClause;
 import org.iptc.extra.core.cql.tree.SearchTerms;
+import org.iptc.extra.core.cql.tree.utils.TreeUtils;
 
 import static org.elasticsearch.index.query.QueryBuilders.*;
 
@@ -22,57 +27,91 @@ public class CQL2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 	
 	@Override
 	public QueryBuilder visitPrefixClause(PrefixClause prefixClause) {
-	
-		BoolQueryBuilder booleanQb = boolQuery();
-		
-		Operator operator = prefixClause.getOperator();
-		
-		List<QueryBuilder> clausesQueries = new ArrayList<QueryBuilder>();
-		for(Clause clause : prefixClause.getClauses()) {
-			QueryBuilder queryBuilder = visit(clause);
-			if(queryBuilder == null) {
-				continue;
-			}
-			clausesQueries.add(queryBuilder);
-		}
-		
-		if(clausesQueries.isEmpty()) {
-			return null;
-		}
-		
-		if(operator.isAnd()) {
-			for(QueryBuilder stqb : clausesQueries) {
-				booleanQb.must(stqb);
-			}
-		}
-		else if(operator.isOr()) {
-			for(QueryBuilder stqb : clausesQueries) {
-				booleanQb.should(stqb);
-			}
 
-			if(operator.hasModifier("countunique")) {
-				Modifier modifier = operator.getModifier("countunique");
-				if(modifier.isComparitorGT() || modifier.isComparitorGTE()) {
-						booleanQb.minimumShouldMatch(modifier.getValue());
-				}
+		Operator operator = prefixClause.getOperator();
+		List<Clause> childrenClauses = prefixClause.getClauses();
+		
+		if(TreeUtils.areSearchTermClauses(childrenClauses)) {
+			
+			SearchTerms mergedSearchTerms = TreeUtils.mergeTerms(childrenClauses);
+			
+			QueryStringQueryBuilder queryBuilder = queryStringQuery(mergedSearchTerms.getSearchTerm());
+			if(mergedSearchTerms.hasWildcards()) {
+				queryBuilder.defaultField("text_content");
 			}
-		}
-		else if(operator.isNot()) {
-			for(QueryBuilder stqb : clausesQueries) {
-				booleanQb.mustNot(stqb);
-			}
-		}
-		else if(operator.isProx()) {
-			for(QueryBuilder stqb : clausesQueries) {
-				booleanQb.must(stqb);
+			else {
+				queryBuilder.defaultField("stemmed_text_content");
+				queryBuilder.fuzziness(Fuzziness.ZERO);
 			}
 			
-			if(operator.hasModifier("distance")) {
-				//Modifier distanceModifier = operator.getModifier("distance");
+			if(operator.isAnd()) {
+				queryBuilder.defaultOperator(org.elasticsearch.index.query.Operator.AND);
 			}
+			else if(operator.isOr() && operator.hasModifier("countunique")) {
+				Modifier modifier = operator.getModifier("countunique");
+				if(modifier.isComparitorGT() || modifier.isComparitorGTE()) {
+					queryBuilder.minimumShouldMatch(modifier.getValue());
+				}
+			}
+			else if(operator.isNot()) {
+				BoolQueryBuilder booleanQb = boolQuery().mustNot(queryBuilder);
+				return booleanQb;
+			}
+			else if(operator.isProx()) {
+				
+			}
+			
+			return queryBuilder;
 		}
+		else {
+			BoolQueryBuilder booleanQb = boolQuery();
+			
+			List<QueryBuilder> clausesQueries = new ArrayList<QueryBuilder>();
+			for(Clause clause : childrenClauses) {
+				QueryBuilder queryBuilder = visit(clause);
+				if(queryBuilder == null) {
+					continue;
+				}
+				clausesQueries.add(queryBuilder);
+			}
 		
-		return booleanQb;
+			if(clausesQueries.isEmpty()) {
+				return null;
+			}
+		
+			if(operator.isAnd()) {
+				for(QueryBuilder stqb : clausesQueries) {
+					booleanQb.must(stqb);
+				}
+			}
+			else if(operator.isOr()) {
+				for(QueryBuilder stqb : clausesQueries) {
+					booleanQb.should(stqb);
+				}
+				if(operator.hasModifier("countunique")) {
+					Modifier modifier = operator.getModifier("countunique");
+					if(modifier.isComparitorGT() || modifier.isComparitorGTE()) {
+						booleanQb.minimumShouldMatch(modifier.getValue());
+					}
+				}
+			}
+			else if(operator.isNot()) {
+				for(QueryBuilder stqb : clausesQueries) {
+					booleanQb.mustNot(stqb);
+				}
+			}
+			else if(operator.isProx()) {
+				for(QueryBuilder stqb : clausesQueries) {
+					booleanQb.must(stqb);
+				}
+			
+				if(operator.hasModifier("distance")) {
+					//Modifier distanceModifier = operator.getModifier("distance");
+				}
+			}
+		
+			return booleanQb;
+		}
 	}
 
 	@Override
@@ -140,8 +179,18 @@ public class CQL2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 	}
 
 	@Override
-	public QueryBuilder visitSearchTerms(SearchTerms searchTerm) {
-		QueryBuilder qb = matchQuery("stemmed_text_content", searchTerm.getSearchTerm());
-		return qb;
+	public QueryBuilder visitSearchTerms(SearchTerms searchTerms) {
+		if(searchTerms.hasWildcards()) {
+			
+			String searchTerm = StringUtils.join(searchTerms.getTerms(), " ");
+			WildcardQueryBuilder qb = wildcardQuery("text_content", searchTerm);
+			
+			return qb;
+		}
+		else {
+			QueryBuilder qb = matchQuery("stemmed_text_content", searchTerms.getSearchTerm());
+			return qb;
+		}
+		
 	}
 }

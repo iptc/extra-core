@@ -5,9 +5,11 @@ import java.util.List;
 
 public class Paragraph {
 
+	private String paragraph;
 	private List<Sentence> sentences = new ArrayList<Sentence>();
 
 	public Paragraph(String paragraph) {
+		this.paragraph = paragraph;
 		String[] splits = paragraph.split("\\.|\\?|\\!");
 		for(String split : splits) {
 			split = split.trim();
@@ -32,12 +34,15 @@ public class Paragraph {
 		this.sentences = sentences;
 	}
 	
-	public String toString() {
-		StringBuffer buffer = new StringBuffer();
-		for(Sentence sentence : sentences) {
-			buffer.append(sentence.getText());
-		}
-		
-		return buffer.toString();
+	public String toString() {		
+		return paragraph;
+	}
+
+	public String getParagraph() {
+		return paragraph;
+	}
+
+	public void setParagraph(String paragraph) {
+		this.paragraph = paragraph;
 	}
 }

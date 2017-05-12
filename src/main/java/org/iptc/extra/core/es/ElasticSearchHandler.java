@@ -21,7 +21,7 @@ import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.iptc.extra.core.types.document.Document;
-import org.iptc.extra.core.types.document.TextField;
+import org.iptc.extra.core.types.document.StructuredTextField;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -155,12 +155,18 @@ public class ElasticSearchHandler {
 			}
 			
 			if(source.has("body")) {
+				String bodyValue = source.get("body").getAsString();
+				if(highlight.has("body")) {
+					JsonArray ar = highlight.getAsJsonArray("body");
+					if(ar.size() > 0) {
+						bodyValue = ar.get(0).getAsString();
+					}
+				}
+				
 				if(source.has("body_paragraphs")) {
-					TextField bodyField = new TextField();
-					
-					String bodyValue = source.get("body").getAsString();
+					StructuredTextField bodyField = new StructuredTextField();
+
 					bodyField.setValue(bodyValue);
-					
 					JsonArray paragraphsArray = source.getAsJsonArray("body_paragraphs");
 					for(JsonElement paragraphElement : paragraphsArray) {
 						String paragraph = paragraphElement.getAsJsonObject().get("paragraph").getAsString();
@@ -170,17 +176,9 @@ public class ElasticSearchHandler {
 					doc.addField("body", bodyField);
 				}
 				else {
-					doc.addField("body", source.get("body").getAsString());
-				}
-				
-				if(highlight.has("body")) {
-					JsonArray ar = highlight.getAsJsonArray("body");
-					if(ar.size() > 0) {
-						doc.addField("body", ar.get(0).getAsString());
-					}
+					doc.addField("body", bodyValue);
 				}
 			}
-			
 			
 			
 			doc.addField("versionCreated", source.get("versionCreated").getAsString());

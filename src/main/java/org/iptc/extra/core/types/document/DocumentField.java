@@ -1,33 +1,9 @@
 package org.iptc.extra.core.types.document;
 
 import com.google.gson.JsonElement;
-import com.google.gson.JsonPrimitive;
 
-public class DocumentField {
+public abstract class DocumentField {
+	
+	public abstract JsonElement toJson();
 
-	protected String value;
-
-	public DocumentField() {
-		
-	}
-	
-	public DocumentField(String value) {
-		this.value = value;
-	}
-	
-	public String getValue() {
-		return value;
-	}
-
-	public void setValue(String value) {
-		this.value = value;
-	}
-	
-	public JsonElement toJson() {
-		return new JsonPrimitive(value);
-	}
-	
-	public String toString() {
-		return value;
-	}
 }

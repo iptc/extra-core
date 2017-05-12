@@ -22,5 +22,10 @@ public class NestedField extends DocumentField {
 		}
 		return json;
 	}
+
+	@Override
+	public String toString() {
+		return toJson().toString();
+	}
 	
 }

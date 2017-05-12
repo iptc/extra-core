@@ -1,16 +1,22 @@
 package org.iptc.extra.core.cql.tree.utils;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.iptc.extra.core.cql.tree.Clause;
+import org.iptc.extra.core.cql.tree.CommentClause;
 import org.iptc.extra.core.cql.tree.Index;
 import org.iptc.extra.core.cql.tree.Node;
 import org.iptc.extra.core.cql.tree.Operator;
+import org.iptc.extra.core.cql.tree.PrefixClause;
 import org.iptc.extra.core.cql.tree.Relation;
+import org.iptc.extra.core.cql.tree.SearchClause;
+import org.iptc.extra.core.cql.tree.SearchTerms;
 import org.iptc.extra.core.cql.tree.visitor.SyntaxTreeVisitor;
 import org.iptc.extra.core.types.Schema;
 
@@ -115,6 +121,55 @@ public class TreeUtils {
 		return relations;
 	}
 	
+	public static Set<SearchClause> getSearchClauses(Node root) {
+		SyntaxTreeVisitor<Set<SearchClause>> visitor = new SyntaxTreeVisitor<Set<SearchClause>>() {
+			public Set<SearchClause> visitSearchClause(SearchClause searchClause) {
+				Set<SearchClause> searchClauses = new HashSet<SearchClause>();
+				searchClauses.add(searchClause);
+				
+				return searchClauses;
+			}
+			
+			protected Set<SearchClause> aggregateResult(Set<SearchClause> aggregate, Set<SearchClause> nextResult) {
+				aggregate.addAll(nextResult);
+				return aggregate;
+			}
+			
+			protected Set<SearchClause> defaultResult() {
+				return new HashSet<SearchClause>();
+			}
+		};
+		
+		Set<SearchClause> searchClauses = visitor.visit(root);
+		return searchClauses;
+	}
+	
+	public static Set<SearchClause> getSearchTermClauses(Node root) {
+		SyntaxTreeVisitor<Set<SearchClause>> visitor = new SyntaxTreeVisitor<Set<SearchClause>>() {
+			public Set<SearchClause> visitSearchClause(SearchClause searchClause) {
+				Set<SearchClause> searchClauses = new HashSet<SearchClause>();
+				
+				if(!searchClause.hasIndex()) {
+					searchClauses.add(searchClause);
+				}
+				
+				return searchClauses;
+			}
+			
+			protected Set<SearchClause> aggregateResult(Set<SearchClause> aggregate, Set<SearchClause> nextResult) {
+				aggregate.addAll(nextResult);
+				return aggregate;
+			}
+			
+			protected Set<SearchClause> defaultResult() {
+				return new HashSet<SearchClause>();
+			}
+		};
+		
+		Set<SearchClause> searchClauses = visitor.visit(root);
+		return searchClauses;
+	}
+	
 	public static Set<Operator> getOperators(Node root) {
 		SyntaxTreeVisitor<Set<Operator>> visitor = new SyntaxTreeVisitor<Set<Operator>>() {
 			public Set<Operator> visitOperator(Operator operator) {
@@ -138,4 +193,60 @@ public class TreeUtils {
 		return operators;
 	}
 	
+	public static boolean areSearchClauses(Collection<Clause> clauses) {
+		for(Clause clause : clauses) {
+			if(clause instanceof CommentClause) {
+				continue;
+			}
+			if(clause instanceof PrefixClause) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	public static boolean areSearchTermClauses(Collection<Clause> clauses) {
+		for(Clause clause : clauses) {
+			if(clause instanceof CommentClause) {
+				continue;
+			}
+			if(clause instanceof PrefixClause) {
+				return false;
+			}
+			if(clause instanceof SearchClause) {
+				SearchClause searchClause = (SearchClause) clause;
+				if(searchClause.hasIndex()) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+	
+	public static SearchTerms mergeTerms(List<Clause> clauses) {
+		SearchTerms searchTerms = new SearchTerms();
+		
+		List<String> allTerms = new ArrayList<String>();
+		for(Clause clause : clauses) {
+			if(clause instanceof SearchClause) {
+				SearchClause searchClause = (SearchClause) clause;
+				List<String> terms = searchClause.getSearchTerms().getTerms();
+				allTerms.addAll(terms);
+			}
+		}
+		
+		searchTerms.setTerms(allTerms);
+		return searchTerms;
+	}
+	
+	public static List<String> getIndices(List<SearchClause> searchClauses) {
+		Set<String> set = new HashSet<String>();
+		for(SearchClause searchClause : searchClauses) {
+			if(searchClause.hasIndex()) {
+				set.add(searchClause.getIndex().getName());
+			}
+		}
+		
+		return new ArrayList<String>(set);
+	}
 }

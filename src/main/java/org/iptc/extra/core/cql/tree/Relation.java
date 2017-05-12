@@ -4,8 +4,6 @@ public class Relation extends Modified  {
 
 	private String relation; 
 	
-	private boolean valid = true;
-	
 	public Relation(String relation) {
 		this.relation = relation;
 	}
@@ -33,13 +31,5 @@ public class Relation extends Modified  {
 		buffer.append(relation);
 		buffer.append(super.toString());
 		return buffer.toString();
-	}
-
-	public boolean isValid() {
-		return valid;
-	}
-
-	public void setValid(boolean valid) {
-		this.valid = valid;
 	}
 }

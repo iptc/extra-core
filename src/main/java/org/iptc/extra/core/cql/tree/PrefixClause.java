@@ -4,10 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.iptc.extra.core.cql.tree.extra.ExtraOperator;
 
 public class PrefixClause extends Clause {
 
 	private Operator operator;
+	private ExtraOperator extraOperator;
 	
 	private List<Clause> clauses = new ArrayList<Clause>();
 
@@ -22,10 +24,28 @@ public class PrefixClause extends Clause {
 		children.add(operator);
 	}
 
+	public ExtraOperator getExtraOperator() {
+		return extraOperator;
+	}
+
+	public void setExtraOperator(ExtraOperator extraOperator) {
+		this.extraOperator = extraOperator;
+	}
+	
 	public List<Clause> getClauses() {
 		return clauses;
 	}
 
+	public List<SearchClause> getSearchClause() {
+		 List<SearchClause> searchClauses = new ArrayList<SearchClause>();
+		 for(Clause clause : clauses) {
+			 if(clause instanceof SearchClause) {
+				 searchClauses.add((SearchClause) clause);
+			 }
+		 }
+		 return searchClauses;
+	}
+	
 	public void setClauses(List<Clause> clauses) {
 		this.clauses = clauses;
 		
