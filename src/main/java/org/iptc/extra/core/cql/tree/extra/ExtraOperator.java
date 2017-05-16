@@ -2,8 +2,10 @@ package org.iptc.extra.core.cql.tree.extra;
 
 import java.util.List;
 
+import org.iptc.extra.core.cql.tree.Clause;
 import org.iptc.extra.core.cql.tree.Modifier;
 import org.iptc.extra.core.cql.tree.Operator;
+import org.iptc.extra.core.cql.tree.PrefixClause;
 
 public enum ExtraOperator {
 	
@@ -126,4 +128,15 @@ public enum ExtraOperator {
 		ExtraOperator extraOperator = getExtraOperator(operator);
 		return extraOperator != null;
 	}
+	
+	public static boolean isExtraOperatorClause(Clause clause, ExtraOperator extraOperator) {
+		if(clause instanceof PrefixClause) {
+			PrefixClause prefixClause = (PrefixClause) clause;
+			if(prefixClause.getExtraOperator() != null && prefixClause.getExtraOperator() == extraOperator) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 }

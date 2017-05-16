@@ -13,6 +13,7 @@ import org.elasticsearch.index.query.NestedQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.elasticsearch.index.query.RangeQueryBuilder;
+import org.elasticsearch.index.query.SpanMultiTermQueryBuilder;
 import org.elasticsearch.index.query.SpanNearQueryBuilder;
 import org.elasticsearch.index.query.SpanNotQueryBuilder;
 import org.elasticsearch.index.query.SpanOrQueryBuilder;
@@ -41,8 +42,6 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 	@Override
 	public QueryBuilder visitPrefixClause(PrefixClause prefixClause) {
 		ExtraOperator extraOperator = prefixClause.getExtraOperator();
-
-		System.out.println(extraOperator);
 		
 		if(extraOperator == ExtraOperator.AND) {
 			return andToES(prefixClause);
@@ -110,6 +109,10 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 	
 	private QueryBuilder andToES(PrefixClause prefixClause) {
 		List<Clause> childrenClauses = prefixClause.getClauses();
+		if(childrenClauses.size() == 1) {
+			return visit(childrenClauses.get(0));
+		}
+		
 		if(TreeUtils.areSearchTermClauses(childrenClauses)) {
 			SearchTerms mergedSearchTerms = TreeUtils.mergeTerms(childrenClauses);
 			
@@ -127,14 +130,33 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		}
 		else {
 			BoolQueryBuilder booleanQb = boolQuery();
-			List<QueryBuilder> clausesQueries = getClausesQueries(childrenClauses);
-			if(clausesQueries.isEmpty()) {
+			
+			List<QueryBuilder> mustClauses = new ArrayList<QueryBuilder>();
+			List<QueryBuilder> mustNotClauses = new ArrayList<QueryBuilder>();
+			for(Clause clause : childrenClauses) {
+				if(ExtraOperator.isExtraOperatorClause(clause, ExtraOperator.NOT)) {
+					mustNotClauses.addAll(getChildrenClausesQueries((PrefixClause) clause));
+				}
+				else {
+					QueryBuilder queryBuilder = visit(clause);
+					if(queryBuilder != null) {
+						mustClauses.add(queryBuilder);
+					}
+				}
+			}
+
+			if(mustClauses.isEmpty()) {
 				return null;
 			}	
 		
-			for(QueryBuilder stqb : clausesQueries) {
+			for(QueryBuilder stqb : mustClauses) {
 				booleanQb.must(stqb);
 			}	
+			
+			for(QueryBuilder stqb : mustNotClauses) {
+				booleanQb.mustNot(stqb);
+			}	
+			
 			return booleanQb;
 		}
 	}
@@ -142,6 +164,9 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 	private QueryBuilder orToES(PrefixClause prefixClause) {
 		
 		List<Clause> childrenClauses = prefixClause.getClauses();
+		if(childrenClauses.size() == 1) {
+			return visit(childrenClauses.get(0));
+		}
 		
 		if(spanEnabled) {
 			List<QueryBuilder> clausesQueries = getClausesQueries(childrenClauses);
@@ -157,8 +182,6 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			return spanOrQb;
 		}
 		else {
-			
-		
 			if(TreeUtils.areSearchTermClauses(childrenClauses)) {
 				SearchTerms mergedSearchTerms = TreeUtils.mergeTerms(childrenClauses);
 			
@@ -354,19 +377,7 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		
 		return booleanQb;
 	}
-	
-	private List<QueryBuilder> getClausesQueries(List<Clause> childrenClauses) {
-		List<QueryBuilder> clausesQueries = new ArrayList<QueryBuilder>();
-		for(Clause clause : childrenClauses) {
-			QueryBuilder queryBuilder = visit(clause);
-			if(queryBuilder == null) {
-				continue;
-			}
-			clausesQueries.add(queryBuilder);
-		}
-		return clausesQueries;
-	}
-	
+
 	private SpanNearQueryBuilder distanceToES(PrefixClause prefixClause, boolean inOrder) {
 		
 		Operator operator = prefixClause.getOperator();
@@ -486,6 +497,31 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		return null;
 	}
 	
+	private List<QueryBuilder> getClausesQueries(List<Clause> clauses) {
+		List<QueryBuilder> clausesQueries = new ArrayList<QueryBuilder>();
+		for(Clause clause : clauses) {
+			QueryBuilder queryBuilder = visit(clause);
+			if(queryBuilder == null) {
+				continue;
+			}
+			clausesQueries.add(queryBuilder);
+		}
+		return clausesQueries;
+	}
+	
+	private List<QueryBuilder> getChildrenClausesQueries(PrefixClause prefixClause) {
+		List<Clause> childrenClauses = prefixClause.getClauses();
+		List<QueryBuilder> clausesQueries = new ArrayList<QueryBuilder>();
+		for(Clause clause : childrenClauses) {
+			QueryBuilder queryBuilder = visit(clause);
+			if(queryBuilder == null) {
+				continue;
+			}
+			clausesQueries.add(queryBuilder);
+		}
+		return clausesQueries;
+	}
+	
 	@Override
 	public QueryBuilder visitSearchClause(SearchClause searchClause) {
 		if(spanEnabled) {
@@ -508,29 +544,34 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 	}
 
 	private QueryBuilder searchClausetoES(String index, Relation relation, SearchTerms searchTerms) {
-
+		
+		boolean hasWildcards = searchTerms.hasWildcards();
+		
 		String query = searchTerms.getSearchTerm();
-
+		if(hasWildcards) {
+			return searchClauseWithWildcards(index, relation, searchTerms);
+		}
+		
 		if(relation.is("any") || relation.is("=")) {
 			if(relation.hasModifier("stemming")) {
 				index = "stemmed_" + index;
 			}
-			
 			return matchQuery(index, query);
+			
 		}
 		else if (relation.is("==")) {
 			return termQuery(index, query);
 		}
 		else if (relation.is("all")) {
-			MatchQueryBuilder qb;
 			if(relation.hasModifier("stemming")) {
 				index = "stemmed_" + index;
 			}
-			
-			qb = matchQuery(index, query);
-			qb.operator(org.elasticsearch.index.query.Operator.AND);
-			
-			return qb;
+
+			MatchQueryBuilder queryBuilder = matchQuery(index, query);
+			queryBuilder.operator(org.elasticsearch.index.query.Operator.AND);	
+				
+			return queryBuilder;
+				
 		}
 		else if (relation.is("adj")) {
 			return matchPhraseQuery(index, query);
@@ -605,9 +646,7 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 				else {
 					return spanTermQuery(index, query);
 				}
-				
-				
-				
+	
 			}
 			else if(relation.is(">")) {
 				RangeQueryBuilder qb = rangeQuery(index).gt(query);
@@ -631,6 +670,63 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 				
 				return spanMultiTermQueryBuilder((MultiTermQueryBuilder) qb);
 			}
+		}
+		
+		return null;
+	}
+	
+	private QueryBuilder searchClauseWithWildcards(String index, Relation relation, SearchTerms searchTerms) {
+		
+		String query = searchTerms.getSearchTerm();
+		
+		if(relation.is("any") || relation.is("=") || relation.is("all")) {
+			QueryStringQueryBuilder queryBuilder = queryStringQuery(query);
+			queryBuilder.field(index);
+			queryBuilder.analyzeWildcard(true);
+			
+			if(relation.is("all")) {
+				queryBuilder.defaultOperator(org.elasticsearch.index.query.Operator.AND);
+			}
+			
+			return queryBuilder;
+		}
+		
+		if(relation.is("==")) {
+			return wildcardQuery(index, query);
+		}
+		
+		if(relation.is("adj")) {
+			query = query.toLowerCase().trim();
+			
+			String[] queryTerms = query.trim().split("\\s+");
+			if(queryTerms.length > 1) {
+				
+				List<SpanQueryBuilder> qbs = new ArrayList<SpanQueryBuilder>();
+				for(String term : queryTerms) {
+					if(term.contains("*") || term.contains("?")) {
+						MultiTermQueryBuilder multiTermQuery = (MultiTermQueryBuilder) wildcardQuery(index, term);
+						
+						SpanMultiTermQueryBuilder spanQuery = spanMultiTermQueryBuilder(multiTermQuery);
+						qbs.add(spanQuery);
+					}
+					else {
+						SpanTermQueryBuilder spanQuery = spanTermQuery(index, term);
+						qbs.add(spanQuery);
+					}
+				}
+				
+				SpanNearQueryBuilder spanNear = spanNearQuery(qbs.get(0), 0);
+				for(int i = 1 ; i < qbs.size() ; i++) {
+					spanNear.addClause(qbs.get(i));
+				}
+				spanNear.inOrder(true);
+				
+				return spanNear;
+						
+			}
+			else {
+				return wildcardQuery(index, query);
+			}			
 		}
 		
 		return null;
