@@ -19,6 +19,8 @@ public class Schema {
 	
 	protected String name;
 	
+	protected String language;
+	
 	protected List<Field> fields = new ArrayList<Field>();
 	
 	public Schema() {
@@ -46,18 +48,34 @@ public class Schema {
 		this.name = name;
 	}
 
+	public String getLanguage() {
+		return language;
+	}
+
+	public void setLanguage(String language) {
+		this.language = language;
+	}
+	
 	public List<Field> getFields() {
 		return fields;
 	}
 
-	public void addField(String name, boolean textual) {
-		if(hasField(name)) {
-			Field field = new Field(name, textual);
+	public void addField(String name, boolean textual, boolean hasSentences, boolean hasParagraphs) {
+		Field field = getField(name);
+		if(field != null) {
 			int index = fields.indexOf(field);
+			field.textual = textual;
+			field.hasSentences = hasSentences;
+			field.hasParagraphs = hasParagraphs;
+			
 			fields.add(index, field);
 		}
 		else {
-			Field field = new Field(name, textual);
+			field = new Field(name, textual);
+			field.textual = textual;
+			field.hasSentences = hasSentences;
+			field.hasParagraphs = hasParagraphs;
+			
 			fields.add(field);
 		}
 	}
@@ -66,13 +84,13 @@ public class Schema {
 		this.fields = fields;
 	}
 	
-	public boolean hasField(String fieldName) {
+	public Field getField(String fieldName) {
 		for(Field field : fields) {
-			if(field.getName().equals(fieldName)) {
-				return true;
+			if(field.name.equals(fieldName)) {
+				return field;
 			}
 		}
-		return false;
+		return null;
 	}
 	
 	public Set<String> getFieldNames() {
@@ -83,11 +101,24 @@ public class Schema {
 		return fieldsNames;
 	}
 	
+	public Set<String> getTextualFieldNames() {
+		Set<String> fieldsNames = new HashSet<String>();
+		for(Field field : fields) {
+			if(field.textual) {
+				fieldsNames.add(field.name);
+			}
+		}
+		return fieldsNames;
+	}
+	
 	@XmlRootElement(name = "fields")
 	public static class Field {
 		
-		private String name;
-		private boolean textual;	
+		public String name;
+		
+		public boolean textual = false;	
+		public boolean hasSentences = false;
+		public boolean hasParagraphs = false;
 		
 		public Field() {
 			
@@ -95,22 +126,6 @@ public class Schema {
 		
 		public Field(String name, boolean textual) {
 			this.name = name;
-			this.setTextual(textual);
-		}
-		
-		public String getName() {
-			return name;
-		}
-		
-		public void setName(String name) {
-			this.name = name;
-		}
-
-		public boolean isTextual() {
-			return textual;
-		}
-
-		public void setTextual(boolean textual) {
 			this.textual = textual;
 		}
 

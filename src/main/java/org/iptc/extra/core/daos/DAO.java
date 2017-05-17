@@ -14,11 +14,16 @@ public class DAO<K> extends BasicDAO<K, ObjectId> {
 	}
 
 	public K get(String id) {
-		ObjectId oId = new ObjectId(id);
-		return this.get(oId);
+		try {
+			ObjectId oId = new ObjectId(id);
+			return this.get(oId);
+		}
+		catch(Exception e) {
+			return null;
+		}
 	}
 
-	public WriteResult delete(String id) {
+	public WriteResult deleteById(String id) {
 		ObjectId oId = new ObjectId(id);
 		return this.deleteById(oId);
 	}

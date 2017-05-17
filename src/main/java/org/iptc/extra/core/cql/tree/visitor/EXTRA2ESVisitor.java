@@ -314,20 +314,39 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 	}
 	
 	private NestedQueryBuilder sentenceToES(PrefixClause prefixClause) {
+		
 		List<SearchClause> searchClauses = prefixClause.getSearchClause();
 		Set<String> indices = TreeUtils.getIndices(prefixClause);
 		
-		if(indices.size() != 1) {
+		if(indices.size() > 1) {
 			// the operator has clauses with more than one indices specified 
 			return null;
 		}
 		
-		String index = indices.toArray()[0] + "_sentences";
+		String index;
+		if(indices.size() == 1) {
+			index = indices.toArray()[0] + "_sentences";
+		}
+		else {
+			index = "text_content_sentences";
+		}
+		
 		if(searchClauses.size() == prefixClause.getClauses().size()) {
 			BoolQueryBuilder booleanQb = boolQuery();
 			if(indices.size() == 1) {
 				for(SearchClause searchClause : searchClauses) {
 					QueryBuilder clauseQueryBuilder = searchClausetoES(index + ".sentence", searchClause.getRelation(), searchClause.getSearchTerms());
+					if(clauseQueryBuilder != null) {
+						booleanQb.must(clauseQueryBuilder);
+					}
+				}
+				NestedQueryBuilder nestedQb = nestedQuery(index, booleanQb, ScoreMode.Total);
+				return nestedQb;
+			}
+			else {
+				Relation relation = new Relation("="); 
+				for(SearchClause searchClause : searchClauses) {
+					QueryBuilder clauseQueryBuilder = searchClausetoES(index + ".sentence", relation, searchClause.getSearchTerms());
 					if(clauseQueryBuilder != null) {
 						booleanQb.must(clauseQueryBuilder);
 					}
@@ -350,8 +369,6 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			NestedQueryBuilder nestedQb = nestedQuery(index, booleanQb, ScoreMode.Total);
 			return nestedQb;
 		}
-		
-		return null;
 	}
 	
 	private BoolQueryBuilder notInSentenceToES(PrefixClause prefixClause) {
@@ -574,6 +591,10 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 				
 		}
 		else if (relation.is("adj")) {
+			if(relation.hasModifier("stemming")) {
+				index = "stemmed_" + index;
+			}
+			
 			return matchPhraseQuery(index, query);
 		}
 		else if(relation.is(">")) {

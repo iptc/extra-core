@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.iptc.extra.core.cql.tree.ErrorMessageNode;
+import org.iptc.extra.core.cql.tree.Index;
 import org.iptc.extra.core.cql.tree.Node;
 import org.iptc.extra.core.cql.tree.Operator;
 import org.iptc.extra.core.cql.tree.PrefixClause;
@@ -13,11 +14,19 @@ import org.iptc.extra.core.cql.tree.SearchClause;
 import org.iptc.extra.core.cql.tree.SearchTerms;
 import org.iptc.extra.core.cql.tree.extra.ExtraOperator;
 import org.iptc.extra.core.cql.tree.utils.TreeUtils;
+import org.iptc.extra.core.types.Schema;
+import org.iptc.extra.core.types.Schema.Field;
 
 public class ExtraValidator extends SyntaxTreeVisitor<List<ErrorMessageNode>> {
 	
-	public static List<ErrorMessageNode> validate(Node root) {
-		ExtraValidator validator = new ExtraValidator();
+	private Schema schema;
+
+	public ExtraValidator(Schema schema) {
+		this.schema = schema;
+	}
+
+	public static List<ErrorMessageNode> validate(Node root, Schema schema) {
+		ExtraValidator validator = new ExtraValidator(schema);
 	
 		List<ErrorMessageNode> invalidNodes = validator.visit(root);
 		return invalidNodes;
@@ -58,11 +67,33 @@ public class ExtraValidator extends SyntaxTreeVisitor<List<ErrorMessageNode>> {
 			}
 			else if(!indices.isEmpty() && !searchTermClauses.isEmpty()) {
 				 ErrorMessageNode node = new ErrorMessageNode();
-				 node.setErrorMessage(operator.toString() + " (" + extraOperator + ") connot mix index and non-index statements");
+				 node.setErrorMessage(operator.toString() + " (" + extraOperator + ") cannot mix index and non-index statements");
 				 
 				 invalidNodes.add(node);
 				 operator.setValid(false);
-			 }
+			}
+			else {
+				if(schema != null) {
+					for(String index : indices) {
+						Field field = schema.getField(index);
+						if(!field.hasSentences && (extraOperator == ExtraOperator.SENTENCE || extraOperator == ExtraOperator.NOT_IN_SENTENCE)) {
+							ErrorMessageNode node = new ErrorMessageNode();
+							node.setErrorMessage(operator.toString() + " (" + extraOperator + ") cannot be applied on a field (" + index + ") without sentences");
+						 
+							invalidNodes.add(node);
+							operator.setValid(false);
+						}
+					
+						if(!field.hasParagraphs && (extraOperator == ExtraOperator.PARAGRAPH || extraOperator == ExtraOperator.NOT_IN_PARAGRAPH)) {
+							ErrorMessageNode node = new ErrorMessageNode();
+							node.setErrorMessage(operator.toString() + " (" + extraOperator + ") cannot be applied on a field (" + index + ") without paragraphs");
+						 
+							invalidNodes.add(node);
+							operator.setValid(false);
+						}	
+					}
+				}
+			}
 		}
 		
 		if(extraOperator == null) {
@@ -83,7 +114,12 @@ public class ExtraValidator extends SyntaxTreeVisitor<List<ErrorMessageNode>> {
 		
 		List<ErrorMessageNode> invalidRelations = new ArrayList<ErrorMessageNode>();
 		
+		Index index = searchClause.getIndex();
 		Relation relation = searchClause.getRelation();
+		if(relation == null || index == null) {
+			return invalidRelations;
+		}
+		
 		if(relation != null && !relation.isValid()) {
 			ErrorMessageNode node = new ErrorMessageNode();
 			node.setErrorMessage(relation.toString() + " is not a valid EXTRA relation");
@@ -119,7 +155,17 @@ public class ExtraValidator extends SyntaxTreeVisitor<List<ErrorMessageNode>> {
 			invalidRelations.add(node);
 			relation.setValid(false);
 		}
-		
+		else if(schema != null && relation.hasModifier("stemming")) {
+			Field field = schema.getField(index.getName());
+			if(field != null && !field.textual) {
+				ErrorMessageNode node = new ErrorMessageNode();
+				node.setErrorMessage("Stemming modifier cannot be applied on a non-textual index: " + index.getName());
+			
+				invalidRelations.add(node);
+				relation.setValid(false);
+			}
+		}
+				
 		return invalidRelations;
 	}
 	

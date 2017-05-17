@@ -53,11 +53,33 @@ public class TreeUtils {
 	}
 	
 	public static Set<String> validateSchema(Node root, Schema schema) {
-		Set<String> fields = schema.getFieldNames();
-		Set<String> indices = getIndices(root);
+		SyntaxTreeVisitor<Set<String>> visitor = new SyntaxTreeVisitor<Set<String>>() {
+			public Set<String> visitIndex(Index index) {
+				Set<String> indices = new HashSet<String>();
+				if(!schema.getFieldNames().contains(index.getName())) {
+					index.setValid(false);
+					indices.add(index.getName());
+				}
+				return indices;
+			}
+			
+			protected Set<String> aggregateResult(Set<String> aggregate, Set<String> nextResult) {
+				aggregate.addAll(nextResult);
+				return aggregate;
+			}
+			
+			protected Set<String> defaultResult() {
+				return new HashSet<String>();
+			}
+		};
 		
-		indices.retainAll(fields);
+		if(schema == null) {
+			return new HashSet<String>();
+		}
+		
+		Set<String> indices = visitor.visit(root);
 		return indices;
+		
 	}
 	
 	public static Map<String, Set<String>> validateSchema(Node root, List<Schema> schemas) {
@@ -80,7 +102,7 @@ public class TreeUtils {
 			public Set<String> visitIndex(Index index) {
 				Set<String> indices = new HashSet<String>();
 				indices.add(index.getName());
-				
+			
 				return indices;
 			}
 			

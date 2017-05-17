@@ -97,6 +97,7 @@ public class ElasticSearchHandler {
 			highlight.add("fields", fields);
 			highlight.add("pre_tags", new JsonPrimitive("<span class=\"highlight\">"));
 			highlight.add("post_tags", new JsonPrimitive("</span>"));
+			highlight.add("require_field_match", new JsonPrimitive(false));
 			
 			queryObject.add("highlight", highlight);
 		}
@@ -152,12 +153,24 @@ public class ElasticSearchHandler {
 						doc.addField("headline", ar.get(0).getAsString());
 					}
 				}
+				else if(highlight.has("stemmed_headline")) {
+					JsonArray ar = highlight.getAsJsonArray("stemmed_headline");
+					if(ar.size() > 0) {
+						doc.addField("headline", ar.get(0).getAsString());
+					}
+				}
 			}
 			
 			if(source.has("body")) {
 				String bodyValue = source.get("body").getAsString();
 				if(highlight.has("body")) {
 					JsonArray ar = highlight.getAsJsonArray("body");
+					if(ar.size() > 0) {
+						bodyValue = ar.get(0).getAsString();
+					}
+				}
+				else if(highlight.has("stemmed_body")) {
+					JsonArray ar = highlight.getAsJsonArray("stemmed_body");
 					if(ar.size() > 0) {
 						bodyValue = ar.get(0).getAsString();
 					}

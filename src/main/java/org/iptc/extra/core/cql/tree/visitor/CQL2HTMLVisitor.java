@@ -72,7 +72,8 @@ public class CQL2HTMLVisitor extends SyntaxTreeVisitor<String> {
 	public String visitIndex(Index index) {
 		StringBuffer buffer = new StringBuffer();
 		
-		buffer.append("<" + htmlTag + " class=\"index\" data-depth=\"" + index.getDepth() + "\"> ");
+		buffer.append("<" + htmlTag + " class=\"index\" data-valid=\"" + index.isValid() + "\" "
+				+ "data-depth=\"" + index.getDepth() + "\"> ");
 		buffer.append(index.getName());
 		buffer.append(" </" + htmlTag + "> ");
 		

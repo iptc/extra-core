@@ -65,7 +65,7 @@ public class CQL2JSTreeVisitor extends SyntaxTreeVisitor<String> {
 		public String visitIndex(Index index) {
 			StringBuffer buffer = new StringBuffer();
 			
-			buffer.append("<span class=\"index\"> ");
+			buffer.append("<span class=\"index\" data-valid=\"" + index.isValid() + "\"> ");
 			buffer.append(index.getName());
 			buffer.append("</span>");
 			
