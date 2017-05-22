@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -20,6 +18,7 @@ import org.apache.http.nio.entity.NStringEntity;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.index.query.QueryBuilder;
+import org.iptc.extra.core.types.Schema;
 import org.iptc.extra.core.types.document.Document;
 import org.iptc.extra.core.types.document.StructuredTextField;
 
@@ -30,8 +29,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 public class ElasticSearchHandler {
-
-	protected DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 	
 	protected RestClient restClient;
 	
@@ -205,6 +202,13 @@ public class ElasticSearchHandler {
 	
 	public void close() throws IOException {
 		restClient.close();
+	}
+	
+	public Document documentFromResponse(JsonObject responseObject, Schema schema) {
+		Document doc = new Document();
+		
+		
+		return doc;
 	}
 	
 	private JsonObject parseResponse(Response response) {

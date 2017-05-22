@@ -84,11 +84,11 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		}
 		
 		if(extraOperator == ExtraOperator.MAXIMUM_OCCURRENCE) {
-			return null;
+			return orToES(prefixClause);
 		}
 
 		if(extraOperator == ExtraOperator.MINIMUM_OCCURRENCE) {
-			return null;
+			return orToES(prefixClause);
 		}
 		
 		if(extraOperator == ExtraOperator.ORDER) {
@@ -211,13 +211,12 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 	}
 	
 	private QueryBuilder minimumToES(PrefixClause prefixClause) {
-		
-		Operator operator = prefixClause.getOperator();
 		QueryBuilder queryBuilder = orToES(prefixClause);
 		if(queryBuilder == null) {
 			return null;
 		}
 		
+		Operator operator = prefixClause.getOperator();
 		Modifier modifier = operator.getModifier("countunique");
 		Integer mimimum = Integer.parseInt(modifier.getValue());
 		if(modifier.isComparitorGT()) {
@@ -227,7 +226,7 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		if(queryBuilder instanceof QueryStringQueryBuilder) {
 			((QueryStringQueryBuilder) queryBuilder).minimumShouldMatch(mimimum.toString());
 		}
-		else {
+		else if (queryBuilder instanceof BoolQueryBuilder) {
 			((BoolQueryBuilder) queryBuilder).minimumShouldMatch(mimimum);
 		}
 			
