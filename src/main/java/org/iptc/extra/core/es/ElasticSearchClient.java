@@ -100,6 +100,8 @@ public class ElasticSearchClient {
 				
 				doc.addField(field, value);	
 			}
+			
+			documents.add(doc);
 		}
 		
 		ElasticSearchResponse resp = new ElasticSearchResponse();
