@@ -32,6 +32,8 @@ import org.iptc.extra.core.types.Schema;
 import org.iptc.extra.core.types.Schema.Field;
 import org.iptc.extra.core.types.document.Document;
 import org.iptc.extra.core.types.document.DocumentField;
+import org.iptc.extra.core.types.document.Paragraph;
+import org.iptc.extra.core.types.document.Sentence;
 import org.iptc.extra.core.types.document.StructuredTextField;
 import org.iptc.extra.core.types.document.TextField;
 
@@ -190,21 +192,35 @@ public class ElasticSearchClient {
 				.field("query", qb)
 				.endObject();
 		
-		IndexResponse indexReponse = client.prepareIndex(indexName, "query", id)
+		IndexResponse indexResponse = client.prepareIndex(indexName, "queries", id)
 				.setSource(query)
 				.setRefreshPolicy(RefreshPolicy.IMMEDIATE)
 				.get();
 		
-		return indexReponse.status().getStatus();
+		return indexResponse.status().getStatus();
 	}
 	
-	public ElasticSearchResponse<String> findRules(Document document, String indexName, int page, int nPerPage) throws IOException {
+	public ElasticSearchResponse<String> findRules(Document document, String indexName, String docType, int page, int nPerPage) throws IOException {
 		
 		XContentBuilder docBuilder = XContentFactory.jsonBuilder().startObject();
 		for(String fieldName : document.keySet()) {
 			DocumentField field = document.get(fieldName);
 			if(field instanceof StructuredTextField) {
-				docBuilder.field(fieldName, ((StructuredTextField) field).getValue());
+				StructuredTextField structuredField = (StructuredTextField) field;
+				docBuilder.field(fieldName, structuredField.getValue());
+				
+				docBuilder.startArray(fieldName + "_paragraphs");
+				for(Paragraph paragraph : structuredField.getParagraphs()) {
+					docBuilder.field("paragraph", paragraph.getParagraph());
+				}
+				docBuilder.endArray();
+				
+				docBuilder.startArray(fieldName + "_sentences");
+				for(Sentence sentence : structuredField.getSentences()) {
+					docBuilder.field("sentence", sentence.getText());
+				}
+				docBuilder.endArray();
+				
 			}
 			else if(field instanceof TextField) {
 				docBuilder.field(fieldName, ((TextField) field).getValue());
@@ -213,7 +229,7 @@ public class ElasticSearchClient {
 		}
 		docBuilder.endObject();
 		
-		PercolateQueryBuilder percolateQuery = new PercolateQueryBuilder("query", "query", docBuilder.bytes());
+		PercolateQueryBuilder percolateQuery = new PercolateQueryBuilder("query", docType, docBuilder.bytes());
 		
 		Integer from = (page - 1) * nPerPage;
 		Integer size = nPerPage;
