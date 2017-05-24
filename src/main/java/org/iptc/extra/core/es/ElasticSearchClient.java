@@ -31,7 +31,9 @@ import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.iptc.extra.core.types.Schema;
 import org.iptc.extra.core.types.Schema.Field;
 import org.iptc.extra.core.types.document.Document;
+import org.iptc.extra.core.types.document.DocumentField;
 import org.iptc.extra.core.types.document.StructuredTextField;
+import org.iptc.extra.core.types.document.TextField;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -52,11 +54,11 @@ public class ElasticSearchClient {
 		client.close();
 	}
 	
-	public ElasticSearchResponse findDocuments(QueryBuilder qb, String indexName, int page, int nPerPage) throws IOException {
+	public ElasticSearchResponse<Document> findDocuments(QueryBuilder qb, String indexName, int page, int nPerPage) throws IOException {
 		return findDocuments(qb, indexName, page, nPerPage, null);
 	}
 	
-	public ElasticSearchResponse findDocuments(QueryBuilder qb, String indexName, int page, int nPerPage, Schema schema) throws IOException {
+	public ElasticSearchResponse<Document> findDocuments(QueryBuilder qb, String indexName, int page, int nPerPage, Schema schema) throws IOException {
 		
 		Integer from = (page - 1) * nPerPage;
 		Integer size = nPerPage;
@@ -76,7 +78,13 @@ public class ElasticSearchClient {
 					.fragmentSize(0)
 					.numOfFragments(0)
 					.requireFieldMatch(false);
+				
+				hlBuilder.field("stemmed_" + field)
+					.fragmentSize(0)
+					.numOfFragments(0)
+					.requireFieldMatch(false);
 			}
+			
 			hlBuilder.preTags("<span class=\"highlight\">");
 			hlBuilder.postTags("</span>");
 			hlBuilder.requireFieldMatch(false);
@@ -97,8 +105,8 @@ public class ElasticSearchClient {
 			}
 		}
 		
-		ElasticSearchResponse resp = new ElasticSearchResponse();
-		resp.setDocuments(documents);
+		ElasticSearchResponse<Document> resp = new ElasticSearchResponse<Document>();
+		resp.setResults(documents);
 		resp.setFound(hits.getTotalHits());
 		
 		return resp;
@@ -118,6 +126,12 @@ public class ElasticSearchClient {
 				
 				if(highlights.containsKey(fieldName)) {
 					Text[] fragments = highlights.get(fieldName).fragments();
+					if(fragments.length > 0) {
+						value = fragments[0].string();
+					}
+				}
+				else if(highlights.containsKey("stemmed_" + fieldName)) {
+					Text[] fragments = highlights.get("stemmed_" + fieldName).fragments();
 					if(fragments.length > 0) {
 						value = fragments[0].string();
 					}
@@ -184,12 +198,22 @@ public class ElasticSearchClient {
 		return indexReponse.status().getStatus();
 	}
 	
-	public List<String> findRules(Document document, Schema schema, String indexName, int page, int nPerPage) throws IOException {
-		XContentBuilder docBuilder = XContentFactory.jsonBuilder().startObject();
+	public ElasticSearchResponse<String> findRules(Document document, String indexName, int page, int nPerPage) throws IOException {
 		
+		XContentBuilder docBuilder = XContentFactory.jsonBuilder().startObject();
+		for(String fieldName : document.keySet()) {
+			DocumentField field = document.get(fieldName);
+			if(field instanceof StructuredTextField) {
+				docBuilder.field(fieldName, ((StructuredTextField) field).getValue());
+			}
+			else if(field instanceof TextField) {
+				docBuilder.field(fieldName, ((TextField) field).getValue());
+			}
+			
+		}
 		docBuilder.endObject();
 		
-		PercolateQueryBuilder percolateQuery = new PercolateQueryBuilder("query", schema.getName(), docBuilder.bytes());
+		PercolateQueryBuilder percolateQuery = new PercolateQueryBuilder("query", "query", docBuilder.bytes());
 		
 		Integer from = (page - 1) * nPerPage;
 		Integer size = nPerPage;
@@ -205,6 +229,11 @@ public class ElasticSearchClient {
 			ruleIds.add(hit.getId());
 		}
 		
-		return ruleIds;
+		ElasticSearchResponse<String> resp = new ElasticSearchResponse<String>();
+		resp.setResults(ruleIds);
+		resp.setFound(response.getHits().getTotalHits());
+		
+		return resp;
 	}
+		
 }

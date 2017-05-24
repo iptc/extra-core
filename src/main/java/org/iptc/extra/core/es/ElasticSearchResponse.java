@@ -3,13 +3,11 @@ package org.iptc.extra.core.es;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.iptc.extra.core.types.document.Document;
-
-public class ElasticSearchResponse {
+public class ElasticSearchResponse<K> {
 
 	private long found = 0;
 
-	private List<Document> documents = new ArrayList<Document>();
+	private List<K> results = new ArrayList<K>();
 
 	public long getFound() {
 		return found;
@@ -19,12 +17,12 @@ public class ElasticSearchResponse {
 		this.found = found;
 	}
 
-	public List<Document> getDocuments() {
-		return documents;
+	public List<K> getResults() {
+		return results;
 	}
 
-	public void setDocuments(List<Document> documents) {
-		this.documents = documents;
+	public void setResults(List<K> results) {
+		this.results = results;
 	}
 	
 	
