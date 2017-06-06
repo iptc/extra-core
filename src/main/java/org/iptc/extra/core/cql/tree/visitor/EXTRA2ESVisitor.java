@@ -762,7 +762,7 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			return qb;
 		}
 		else {
-			QueryBuilder qb = matchQuery("stemmed_text_content", searchTerms.getSearchTerm());
+			QueryBuilder qb = matchQuery("text_content", searchTerms.getSearchTerm());
 			return qb;
 		}
 		

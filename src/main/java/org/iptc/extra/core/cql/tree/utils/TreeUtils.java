@@ -56,7 +56,8 @@ public class TreeUtils {
 		SyntaxTreeVisitor<Set<String>> visitor = new SyntaxTreeVisitor<Set<String>>() {
 			public Set<String> visitIndex(Index index) {
 				Set<String> indices = new HashSet<String>();
-				if(!schema.getFieldNames().contains(index.getName())) {
+				
+				if(!schema.getFieldNames().contains(index.getName()) && !"text_content".equals(index.getName())) {
 					index.setValid(false);
 					indices.add(index.getName());
 				}
