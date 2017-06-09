@@ -589,7 +589,7 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 				index = "case_sensitive_" + index;
 			}
 			else if(relation.hasModifier("literal")) {
-				index = "literar_" + index;
+				index = "literal_" + index;
 			}
 			
 			return matchQuery(index, query);
@@ -606,7 +606,7 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 				index = "case_sensitive_" + index;
 			}
 			else if(relation.hasModifier("literal")) {
-				index = "literar_" + index;
+				index = "literal_" + index;
 			}
 			
 			MatchQueryBuilder queryBuilder = matchQuery(index, query);
@@ -623,7 +623,7 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 				index = "case_sensitive_" + index;
 			}
 			else if(relation.hasModifier("literal")) {
-				index = "literar_" + index;
+				index = "literal_" + index;
 			}
 			
 			return matchPhraseQuery(index, query);
