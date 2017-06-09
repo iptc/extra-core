@@ -32,6 +32,7 @@ import org.iptc.extra.core.cql.tree.SearchClause;
 import org.iptc.extra.core.cql.tree.SearchTerms;
 import org.iptc.extra.core.cql.tree.extra.ExtraOperator;
 import org.iptc.extra.core.cql.tree.utils.TreeUtils;
+import org.iptc.extra.core.types.Schema;
 
 import static org.elasticsearch.index.query.QueryBuilders.*;
 
@@ -41,6 +42,16 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 	
 	private boolean spanEnabled = false;
 	
+	private Schema schema;
+	
+	public EXTRA2ESVisitor() {
+		
+	}
+	
+	public EXTRA2ESVisitor(Schema schema) {
+		this.schema = schema;
+	}
+
 	@Override
 	public QueryBuilder visitPrefixClause(PrefixClause prefixClause) {
 		ExtraOperator extraOperator = prefixClause.getExtraOperator();
@@ -793,7 +804,15 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			return qb;
 		}
 		else {
-			QueryBuilder qb = matchQuery("text_content", searchTerms.getSearchTerm());
+			QueryBuilder qb;
+			if(schema == null) {
+				qb = matchQuery("text_content", searchTerms.getSearchTerm());
+			}
+			else {
+				Set<String> fields = schema.getTextualFieldNames();
+				qb = multiMatchQuery(searchTerms.getSearchTerm(), fields.toArray(new String[fields.size()]));
+			}
+			
 			return qb;
 		}
 		

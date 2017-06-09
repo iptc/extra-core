@@ -8,15 +8,16 @@ import org.iptc.extra.core.cql.tree.visitor.CQL2HTMLVisitor;
 import org.iptc.extra.core.cql.tree.visitor.CQL2JSTreeVisitor;
 import org.iptc.extra.core.cql.tree.visitor.EXTRA2ESVisitor;
 import org.iptc.extra.core.cql.tree.visitor.PretifyVisitor;
+import org.iptc.extra.core.types.Schema;
 
 public class CQLMapper {
 
-	public QueryBuilder toElasticSearch(Node root) {
+	public QueryBuilder toElasticSearch(Node root, Schema schema) {
 		if(root == null) {
 			return null;
 		}	
 
-		EXTRA2ESVisitor visitor = new EXTRA2ESVisitor();
+		EXTRA2ESVisitor visitor = new EXTRA2ESVisitor(schema);
 		
 		QueryBuilder qb = visitor.visit(root);
 		

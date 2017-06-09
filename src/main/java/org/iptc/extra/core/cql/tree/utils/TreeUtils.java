@@ -14,6 +14,7 @@ import org.iptc.extra.core.cql.tree.Index;
 import org.iptc.extra.core.cql.tree.Node;
 import org.iptc.extra.core.cql.tree.Operator;
 import org.iptc.extra.core.cql.tree.PrefixClause;
+import org.iptc.extra.core.cql.tree.ReferenceClause;
 import org.iptc.extra.core.cql.tree.Relation;
 import org.iptc.extra.core.cql.tree.SearchClause;
 import org.iptc.extra.core.cql.tree.SearchTerms;
@@ -271,5 +272,29 @@ public class TreeUtils {
 		}
 		
 		return new ArrayList<String>(set);
+	}
+	
+	public static List<ReferenceClause> getReferences(Node root) {
+		SyntaxTreeVisitor<List<ReferenceClause>> visitor = new SyntaxTreeVisitor<List<ReferenceClause>>() {
+			
+			public List<ReferenceClause> visitReferenceClause(ReferenceClause reference) {
+				List<ReferenceClause> references = new ArrayList<ReferenceClause>();
+				references.add(reference);
+			
+				return references;
+			}
+			
+			protected List<ReferenceClause> aggregateResult(List<ReferenceClause> aggregate, List<ReferenceClause> nextResult) {
+				aggregate.addAll(nextResult);
+				return aggregate;
+			}
+			
+			protected List<ReferenceClause> defaultResult() {
+				return new ArrayList<ReferenceClause>();
+			}
+		};
+		
+		List<ReferenceClause> references = visitor.visit(root);
+		return references;
 	}
 }
