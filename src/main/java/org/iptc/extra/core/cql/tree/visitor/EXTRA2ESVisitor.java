@@ -577,7 +577,7 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		boolean hasWildcards = searchTerms.hasWildcards();
 		
 		String query = searchTerms.getSearchTerm();
-		if(hasWildcards) {
+		if(hasWildcards && !relation.hasModifier("literal")) {
 			return searchClauseWithWildcards(index, relation, searchTerms);
 		}
 		
