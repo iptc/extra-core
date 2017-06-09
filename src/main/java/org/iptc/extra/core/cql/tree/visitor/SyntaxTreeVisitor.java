@@ -6,6 +6,7 @@ import org.iptc.extra.core.cql.tree.Index;
 import org.iptc.extra.core.cql.tree.Node;
 import org.iptc.extra.core.cql.tree.Operator;
 import org.iptc.extra.core.cql.tree.PrefixClause;
+import org.iptc.extra.core.cql.tree.ReferenceClause;
 import org.iptc.extra.core.cql.tree.Relation;
 import org.iptc.extra.core.cql.tree.SearchClause;
 import org.iptc.extra.core.cql.tree.SearchTerms;
@@ -85,6 +86,10 @@ public class SyntaxTreeVisitor<T> {
 	
 	public T visitSearchClause(SearchClause searchClause) {
 		return visitChildren(searchClause);
+	}
+
+	public T visitReferenceClause(ReferenceClause referenceClause) {
+		return visitChildren(referenceClause);
 	}
 	
 	public T visitPrefixClause(PrefixClause prefixClause) {

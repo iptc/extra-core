@@ -26,6 +26,7 @@ import org.iptc.extra.core.cql.tree.Modifier;
 import org.iptc.extra.core.cql.tree.Node;
 import org.iptc.extra.core.cql.tree.Operator;
 import org.iptc.extra.core.cql.tree.PrefixClause;
+import org.iptc.extra.core.cql.tree.ReferenceClause;
 import org.iptc.extra.core.cql.tree.Relation;
 import org.iptc.extra.core.cql.tree.SearchClause;
 import org.iptc.extra.core.cql.tree.SearchTerms;
@@ -222,6 +223,17 @@ public class CQLExtraParser {
 				searchTerms.setDepth(depth);
 				
 				return searchTerms;
+			}
+			
+			@Override 
+			public Node visitReferenceClause(CqlParser.ReferenceClauseContext ctx) {
+				String ruleId = ctx.referencedRule().getText();
+				
+				ReferenceClause clause = new ReferenceClause();
+				clause.setRuleId(ruleId);
+				clause.setDepth(depth);
+				
+				return clause;
 			}
 			
 			@Override

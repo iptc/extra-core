@@ -5,6 +5,7 @@ import org.iptc.extra.core.cql.tree.Clause;
 import org.iptc.extra.core.cql.tree.CommentClause;
 import org.iptc.extra.core.cql.tree.Operator;
 import org.iptc.extra.core.cql.tree.PrefixClause;
+import org.iptc.extra.core.cql.tree.ReferenceClause;
 import org.iptc.extra.core.cql.tree.SearchClause;
 
 public class PretifyVisitor extends SyntaxTreeVisitor<String> {
@@ -65,5 +66,15 @@ public class PretifyVisitor extends SyntaxTreeVisitor<String> {
 		buffer.append(newline);
 		return buffer.toString();
 	}
+	
+	@Override
+	public String visitReferenceClause(ReferenceClause referenceClause) {	
+		StringBuffer buffer = new StringBuffer();
+		buffer.append(StringUtils.repeat(tab, referenceClause.getDepth()));
+		buffer.append("(@ref == " + referenceClause.getRuleId() + ")");
+		buffer.append(newline);
+		return buffer.toString();
+	}
+	
 }
 

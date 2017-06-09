@@ -20,11 +20,13 @@ import org.elasticsearch.index.query.SpanOrQueryBuilder;
 import org.elasticsearch.index.query.SpanQueryBuilder;
 import org.elasticsearch.index.query.SpanTermQueryBuilder;
 import org.elasticsearch.index.query.WildcardQueryBuilder;
+import org.iptc.extra.core.cql.SyntaxTree;
 import org.iptc.extra.core.cql.tree.Clause;
 import org.iptc.extra.core.cql.tree.Index;
 import org.iptc.extra.core.cql.tree.Modifier;
 import org.iptc.extra.core.cql.tree.Operator;
 import org.iptc.extra.core.cql.tree.PrefixClause;
+import org.iptc.extra.core.cql.tree.ReferenceClause;
 import org.iptc.extra.core.cql.tree.Relation;
 import org.iptc.extra.core.cql.tree.SearchClause;
 import org.iptc.extra.core.cql.tree.SearchTerms;
@@ -559,6 +561,17 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		}
 	}
 
+	@Override
+	public QueryBuilder visitReferenceClause(ReferenceClause referenceClause) {
+		
+		SyntaxTree syntaxTree = referenceClause.getRuleSyntaxTree();
+		if(syntaxTree != null && !syntaxTree.hasErrors() && syntaxTree.getRootNode() != null) {
+			return visit(syntaxTree.getRootNode());
+		}
+		
+		return null;
+	}
+	
 	private QueryBuilder searchClausetoES(String index, Relation relation, SearchTerms searchTerms) {
 		
 		boolean hasWildcards = searchTerms.hasWildcards();
@@ -572,6 +585,13 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			if(relation.hasModifier("stemming")) {
 				index = "stemmed_" + index;
 			}
+			else if(relation.hasModifier("casesensitive")) {
+				index = "case_sensitive_" + index;
+			}
+			else if(relation.hasModifier("literal")) {
+				index = "literar_" + index;
+			}
+			
 			return matchQuery(index, query);
 			
 		}
@@ -582,7 +602,13 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			if(relation.hasModifier("stemming")) {
 				index = "stemmed_" + index;
 			}
-
+			else if(relation.hasModifier("casesensitive")) {
+				index = "case_sensitive_" + index;
+			}
+			else if(relation.hasModifier("literal")) {
+				index = "literar_" + index;
+			}
+			
 			MatchQueryBuilder queryBuilder = matchQuery(index, query);
 			queryBuilder.operator(org.elasticsearch.index.query.Operator.AND);	
 				
@@ -592,6 +618,12 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		else if (relation.is("adj")) {
 			if(relation.hasModifier("stemming")) {
 				index = "stemmed_" + index;
+			}
+			else if(relation.hasModifier("casesensitive")) {
+				index = "case_sensitive_" + index;
+			}
+			else if(relation.hasModifier("literal")) {
+				index = "literar_" + index;
 			}
 			
 			return matchPhraseQuery(index, query);
@@ -628,7 +660,6 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		
 		if(!searchClause.hasIndex()) {
 			String index = "text_content";
-			
 			return spanTermQuery(index, query);
 		}
 		else {

@@ -5,6 +5,7 @@ import org.iptc.extra.core.cql.tree.CommentClause;
 import org.iptc.extra.core.cql.tree.Index;
 import org.iptc.extra.core.cql.tree.Operator;
 import org.iptc.extra.core.cql.tree.PrefixClause;
+import org.iptc.extra.core.cql.tree.ReferenceClause;
 import org.iptc.extra.core.cql.tree.Relation;
 import org.iptc.extra.core.cql.tree.SearchClause;
 import org.iptc.extra.core.cql.tree.SearchTerms;
@@ -55,6 +56,19 @@ public class CQL2JSTreeVisitor extends SyntaxTreeVisitor<String> {
 			buffer.append("</li> ");
 			return buffer.toString();
 		}
+		
+		@Override
+		public String visitReferenceClause(ReferenceClause referenceClause) {
+			StringBuffer buffer = new StringBuffer();
+			buffer.append("<li>");
+			
+			buffer.append("@ref == ");
+			buffer.append(referenceClause.getRuleId());
+
+			buffer.append("</li> ");
+			return buffer.toString();
+		}
+		
 		
 		@Override
 		public String visitCommentClause(CommentClause commentClause) {

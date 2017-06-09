@@ -76,20 +76,14 @@ public class ElasticSearchClient {
 		if(schema != null) {
 			HighlightBuilder hlBuilder = new HighlightBuilder();
 			for(String field : schema.getTextualFieldNames()) {
-				hlBuilder.field(field)
-					.fragmentSize(0)
-					.numOfFragments(0)
-					.requireFieldMatch(false);
-				
-				hlBuilder.field("stemmed_" + field)
-					.fragmentSize(0)
-					.numOfFragments(0)
-					.requireFieldMatch(false);
+				hlBuilder.field(field).fragmentSize(0).numOfFragments(0);
+				hlBuilder.field("stemmed_" + field).fragmentSize(0).numOfFragments(0);
+				hlBuilder.field("case_sensitive_" + field).fragmentSize(0).numOfFragments(0);
+				hlBuilder.field("literal_" + field).fragmentSize(0).numOfFragments(0);
 			}
 			
 			hlBuilder.preTags("<span class=\"highlight\">");
 			hlBuilder.postTags("</span>");
-			hlBuilder.requireFieldMatch(false);
 			
 			request.highlighter(hlBuilder);
 		}
@@ -138,6 +132,19 @@ public class ElasticSearchClient {
 						value = fragments[0].string();
 					}
 				}
+				else if(highlights.containsKey("case_sensitive_" + fieldName)) {
+					Text[] fragments = highlights.get("case_sensitive_" + fieldName).fragments();
+					if(fragments.length > 0) {
+						value = fragments[0].string();
+					}
+				}
+				else if(highlights.containsKey("literal_" + fieldName)) {
+					Text[] fragments = highlights.get("literal_" + fieldName).fragments();
+					if(fragments.length > 0) {
+						value = fragments[0].string();
+					}
+				}
+				
 				
 				if(schemaField.hasParagraphs) {
 					StructuredTextField bodyField = new StructuredTextField();
