@@ -39,6 +39,10 @@ public class SyntaxTreeVisitor<T> {
 			 return visitSearchClause((SearchClause) node);
 		 }
 		 
+		 if (node instanceof ReferenceClause) {
+			 return visitReferenceClause((ReferenceClause) node);
+		 }
+		 
 		 if (node instanceof PrefixClause) {
 			 return visitPrefixClause((PrefixClause) node);
 		 }

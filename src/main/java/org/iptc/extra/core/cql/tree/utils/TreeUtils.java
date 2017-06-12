@@ -101,6 +101,7 @@ public class TreeUtils {
 	
 	public static Set<String> getIndices(Node root) {
 		SyntaxTreeVisitor<Set<String>> visitor = new SyntaxTreeVisitor<Set<String>>() {
+			
 			public Set<String> visitIndex(Index index) {
 				Set<String> indices = new HashSet<String>();
 				indices.add(index.getName());
@@ -108,14 +109,17 @@ public class TreeUtils {
 				return indices;
 			}
 			
-			protected Set<String> aggregateResult(Set<String> aggregate, Set<String> nextResult) {
+			@Override
+			protected Set<String> aggregateResult(Set<String> aggregate, Set<String> nextResult) {	
 				aggregate.addAll(nextResult);
 				return aggregate;
 			}
 			
+			@Override
 			protected Set<String> defaultResult() {
 				return new HashSet<String>();
 			}
+			
 		};
 		
 		Set<String> indices = visitor.visit(root);
@@ -235,6 +239,9 @@ public class TreeUtils {
 				continue;
 			}
 			if(clause instanceof PrefixClause) {
+				return false;
+			}
+			if(clause instanceof ReferenceClause) {
 				return false;
 			}
 			if(clause instanceof SearchClause) {

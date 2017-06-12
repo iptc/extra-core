@@ -64,6 +64,10 @@ public class CQLExtraParser {
 				ExtraOperator extraOperator = ExtraOperator.getExtraOperator((Operator) operator);
 				prefixClause.setExtraOperator(extraOperator);
 				
+				if(extraOperator == ExtraOperator.MAXIMUM_OCCURRENCE || extraOperator == ExtraOperator.MINIMUM_OCCURRENCE) {
+					prefixClause.setRelaxed(true);
+				}
+				
 				prefixClause.setOperator((Operator) operator);
 				
 				List<Clause> clauses = new ArrayList<Clause>();

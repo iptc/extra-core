@@ -15,6 +15,8 @@ public abstract class Node {
 	
 	protected boolean valid = true;
 	
+	protected boolean relaxed = false;
+	
 	public abstract boolean hasChildren();
 
 	public Node getParent() {
@@ -60,4 +62,14 @@ public abstract class Node {
 	public void setValid(boolean valid) {
 		this.valid = valid;
 	}
+
+	public boolean isRelaxed() {
+		return relaxed;
+	}
+
+	public void setRelaxed(boolean relaxed) {
+		this.relaxed = relaxed;
+	}
+	
+	 
 }

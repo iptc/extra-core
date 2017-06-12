@@ -72,13 +72,16 @@ public class CQL2HTMLVisitor extends SyntaxTreeVisitor<String> {
 	@Override
 	public String visitReferenceClause(ReferenceClause referenceClause) {
 		StringBuffer buffer = new StringBuffer();
-		buffer.append("<" + htmlTag + " class=\"referenceClause\" rule=\"" + referenceClause.getRuleId() + "\" "
-				+ "data-depth=\"" + referenceClause.getDepth() + "\">(");
+		buffer.append("<" + htmlTag + " data-depth=\"" + referenceClause.getDepth() + "\"> (");
+		
+		buffer.append("<" + htmlTag + " class=\"referenceClause\" rule=\"" + referenceClause.getRuleId() + "\">");
 		
 		buffer.append("@ref == ");
 		buffer.append(referenceClause.getRuleId());
 		
-		buffer.append(") </" + htmlTag + "> ");
+		buffer.append("</" + htmlTag + ">");
+		
+		buffer.append(") </" + htmlTag + ">");
 		return buffer.toString();
 	}
 	

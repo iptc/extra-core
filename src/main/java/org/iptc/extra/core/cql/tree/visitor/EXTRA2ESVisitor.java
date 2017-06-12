@@ -8,6 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MatchQueryBuilder;
+import org.elasticsearch.index.query.MultiMatchQueryBuilder;
 import org.elasticsearch.index.query.MultiTermQueryBuilder;
 import org.elasticsearch.index.query.NestedQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -20,6 +21,7 @@ import org.elasticsearch.index.query.SpanOrQueryBuilder;
 import org.elasticsearch.index.query.SpanQueryBuilder;
 import org.elasticsearch.index.query.SpanTermQueryBuilder;
 import org.elasticsearch.index.query.WildcardQueryBuilder;
+
 import org.iptc.extra.core.cql.SyntaxTree;
 import org.iptc.extra.core.cql.tree.Clause;
 import org.iptc.extra.core.cql.tree.Index;
@@ -128,18 +130,34 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		
 		if(TreeUtils.areSearchTermClauses(childrenClauses)) {
 			SearchTerms mergedSearchTerms = TreeUtils.mergeTerms(childrenClauses);
-			
-			QueryStringQueryBuilder queryBuilder = queryStringQuery(mergedSearchTerms.getSearchTerm());
-			queryBuilder.defaultOperator(org.elasticsearch.index.query.Operator.AND);
+
 			if(mergedSearchTerms.hasWildcards()) {
+				QueryStringQueryBuilder queryBuilder = queryStringQuery(mergedSearchTerms.getSearchTerm());
+				queryBuilder.defaultOperator(org.elasticsearch.index.query.Operator.AND);
 				queryBuilder.defaultField("text_content");
 				queryBuilder.analyzeWildcard(true);
+				
+				return queryBuilder;
 			}
 			else {
-				queryBuilder.defaultField("stemmed_text_content");
+				if(schema == null) {
+					MatchQueryBuilder qb = matchQuery("text_content", mergedSearchTerms.getSearchTerm());
+					qb.operator(org.elasticsearch.index.query.Operator.AND);
+					
+					return qb;
+				}
+				else {
+					Set<String> fields = schema.getTextualFieldNames();
+					MultiMatchQueryBuilder qb = multiMatchQuery(mergedSearchTerms.getSearchTerm(), fields.toArray(new String[fields.size()]));
+				
+					qb.operator(org.elasticsearch.index.query.Operator.AND);
+					return qb;
+				}
+
+				
 			}
 			
-			return queryBuilder;
+			
 		}
 		else {
 			BoolQueryBuilder booleanQb = boolQuery();
@@ -754,14 +772,20 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		}
 		
 		if(relation.is("==")) {
-			return wildcardQuery(index, query);
+			if(relation.hasModifier("regex")) {
+				query = StringUtils.join(searchTerms.getTerms(), "");
+				return regexpQuery(index, query);
+			}
+			else {
+				return wildcardQuery(index, query);
+			}
 		}
 		
 		if(relation.is("adj")) {
-			query = query.toLowerCase().trim();
 			
+			query = query.toLowerCase().trim();
 			String[] queryTerms = query.trim().split("\\s+");
-			if(queryTerms.length > 1) {
+			if(!relation.hasModifier("regex") && queryTerms.length > 1) {
 				
 				List<SpanQueryBuilder> qbs = new ArrayList<SpanQueryBuilder>();
 				for(String term : queryTerms) {
@@ -784,10 +808,10 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 				spanNear.inOrder(true);
 				
 				return spanNear;
-						
 			}
 			else {
-				return wildcardQuery(index, query);
+				query = StringUtils.join(searchTerms.getTerms(), "");
+				return regexpQuery(index, query);
 			}			
 		}
 		
