@@ -62,9 +62,11 @@ public class CQL2JSTreeVisitor extends SyntaxTreeVisitor<String> {
 			StringBuffer buffer = new StringBuffer();
 			buffer.append("<li>");
 			
+			buffer.append("<span class=\"referenceClause\">");
 			buffer.append("@ref == ");
 			buffer.append(referenceClause.getRuleId());
-
+			buffer.append("</span>");
+			
 			buffer.append("</li> ");
 			return buffer.toString();
 		}

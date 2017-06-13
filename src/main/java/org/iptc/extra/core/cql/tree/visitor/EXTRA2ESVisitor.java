@@ -153,11 +153,7 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 					qb.operator(org.elasticsearch.index.query.Operator.AND);
 					return qb;
 				}
-
-				
 			}
-			
-			
 		}
 		else {
 			BoolQueryBuilder booleanQb = boolQuery();
@@ -214,18 +210,24 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		}
 		else {
 			if(TreeUtils.areSearchTermClauses(childrenClauses)) {
+				
 				SearchTerms mergedSearchTerms = TreeUtils.mergeTerms(childrenClauses);
-			
-				QueryStringQueryBuilder queryBuilder = queryStringQuery(mergedSearchTerms.getSearchTerm());
-				if(mergedSearchTerms.hasWildcards()) {
-					queryBuilder.defaultField("text_content");
-					queryBuilder.analyzeWildcard(true);
+				if(schema != null && !schema.getTextualFieldNames().isEmpty()) {
+					Set<String> fields = schema.getTextualFieldNames();
+					MultiMatchQueryBuilder qb = multiMatchQuery(mergedSearchTerms.getSearchTerm(), fields.toArray(new String[fields.size()]));
+					
+					return qb;
 				}
 				else {
-					queryBuilder.defaultField("stemmed_text_content");
-				}
+					QueryStringQueryBuilder queryBuilder = queryStringQuery(mergedSearchTerms.getSearchTerm());
+					queryBuilder.defaultField("text_content");
+					
+					if(mergedSearchTerms.hasWildcards()) {	
+						queryBuilder.analyzeWildcard(true);
+					}
 			
-				return queryBuilder;
+					return queryBuilder;
+				}
 			}
 			else {
 				BoolQueryBuilder booleanQb = boolQuery();
@@ -688,8 +690,7 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		query = query.toLowerCase();
 		
 		if(!searchClause.hasIndex()) {
-			String index = "text_content";
-			return spanTermQuery(index, query);
+			return spanTermQuery("text_content", query);
 		}
 		else {
 			String index = searchClause.getIndex().getName();
@@ -772,7 +773,7 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		}
 		
 		if(relation.is("==")) {
-			if(relation.hasModifier("regex")) {
+			if(relation.hasModifier("regexp")) {
 				query = StringUtils.join(searchTerms.getTerms(), "");
 				return regexpQuery(index, query);
 			}
@@ -785,7 +786,7 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			
 			query = query.toLowerCase().trim();
 			String[] queryTerms = query.trim().split("\\s+");
-			if(!relation.hasModifier("regex") && queryTerms.length > 1) {
+			if(!relation.hasModifier("regexp") && queryTerms.length > 1) {
 				
 				List<SpanQueryBuilder> qbs = new ArrayList<SpanQueryBuilder>();
 				for(String term : queryTerms) {
