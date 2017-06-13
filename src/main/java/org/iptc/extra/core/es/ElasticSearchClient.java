@@ -57,10 +57,18 @@ public class ElasticSearchClient {
 	}
 	
 	public ElasticSearchResponse<Document> findDocuments(QueryBuilder qb, String indexName, int page, int nPerPage) throws IOException {
-		return findDocuments(qb, indexName, page, nPerPage, null);
+		return findDocuments(qb, indexName, page, nPerPage, null, null);
 	}
 	
 	public ElasticSearchResponse<Document> findDocuments(QueryBuilder qb, String indexName, int page, int nPerPage, Schema schema) throws IOException {
+		return findDocuments(qb, indexName, page, nPerPage, schema, null);
+	}
+	
+	public ElasticSearchResponse<Document> findDocuments(QueryBuilder qb, String indexName, int page, int nPerPage, QueryBuilder highlightQuery) throws IOException {
+		return findDocuments(qb, indexName, page, nPerPage, null, highlightQuery);
+	}
+	
+	public ElasticSearchResponse<Document> findDocuments(QueryBuilder qb, String indexName, int page, int nPerPage, Schema schema, QueryBuilder highlightQuery) throws IOException {
 		
 		Integer from = (page - 1) * nPerPage;
 		Integer size = nPerPage;
@@ -84,6 +92,9 @@ public class ElasticSearchClient {
 			
 			hlBuilder.preTags("<span class=\"highlight\">");
 			hlBuilder.postTags("</span>");
+			if(highlightQuery != null) {
+				hlBuilder.highlightQuery(highlightQuery);
+			}
 			
 			request.highlighter(hlBuilder);
 		}

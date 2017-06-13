@@ -18,7 +18,6 @@ public class CQLMapper {
 		}	
 
 		EXTRA2ESVisitor visitor = new EXTRA2ESVisitor(schema);
-		
 		QueryBuilder qb = visitor.visit(root);
 		
 		return qb;

@@ -74,7 +74,8 @@ public class CQL2HTMLVisitor extends SyntaxTreeVisitor<String> {
 		StringBuffer buffer = new StringBuffer();
 		buffer.append("<" + htmlTag + " data-depth=\"" + referenceClause.getDepth() + "\"> (");
 		
-		buffer.append("<" + htmlTag + " class=\"referenceClause\" rule=\"" + referenceClause.getRuleId() + "\">");
+		buffer.append("<" + htmlTag + " class=\"referenceClause\" rule=\"" + referenceClause.getRuleId() + "\""
+				+ "data-valid=\"" + referenceClause.isValid() + "\">");
 		
 		buffer.append("@ref == ");
 		buffer.append(referenceClause.getRuleId());

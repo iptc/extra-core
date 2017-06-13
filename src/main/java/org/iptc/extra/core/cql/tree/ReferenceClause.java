@@ -36,4 +36,8 @@ public class ReferenceClause extends Clause {
 		this.ruleSyntaxTree = ruleSyntaxTree;
 	}
 	
+	@Override
+	public String toString() {
+		return "( @ref == " + ruleId + " )";
+	}
 }

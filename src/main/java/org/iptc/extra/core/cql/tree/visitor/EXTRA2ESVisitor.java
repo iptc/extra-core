@@ -3,6 +3,7 @@ package org.iptc.extra.core.cql.tree.visitor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.join.ScoreMode;
@@ -24,6 +25,7 @@ import org.elasticsearch.index.query.WildcardQueryBuilder;
 
 import org.iptc.extra.core.cql.SyntaxTree;
 import org.iptc.extra.core.cql.tree.Clause;
+import org.iptc.extra.core.cql.tree.CommentClause;
 import org.iptc.extra.core.cql.tree.Index;
 import org.iptc.extra.core.cql.tree.Modifier;
 import org.iptc.extra.core.cql.tree.Operator;
@@ -124,6 +126,8 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 	
 	private QueryBuilder andToES(PrefixClause prefixClause) {
 		List<Clause> childrenClauses = prefixClause.getClauses();
+		childrenClauses = childrenClauses.stream().filter(clause -> !(clause instanceof CommentClause)).collect(Collectors.toList());
+		
 		if(childrenClauses.size() == 1) {
 			return visit(childrenClauses.get(0));
 		}
@@ -191,6 +195,8 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 	private QueryBuilder orToES(PrefixClause prefixClause) {
 		
 		List<Clause> childrenClauses = prefixClause.getClauses();
+		childrenClauses = childrenClauses.stream().filter(clause -> !(clause instanceof CommentClause)).collect(Collectors.toList());
+		
 		if(childrenClauses.size() == 1) {
 			return visit(childrenClauses.get(0));
 		}
@@ -427,26 +433,36 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		return booleanQb;
 	}
 
-	private SpanNearQueryBuilder distanceToES(PrefixClause prefixClause, boolean inOrder) {
+	private QueryBuilder distanceToES(PrefixClause prefixClause, boolean inOrder) {
 		
 		Operator operator = prefixClause.getOperator();
 		Modifier distanceModifier = operator.getModifier("distance");
 		int slop = Integer.parseInt(distanceModifier.getValue());
 		
-		List<QueryBuilder> clauseQbs = new ArrayList<QueryBuilder>();
+		/*
+		BoolQueryBuilder booleanQb = boolQuery();
+		for(Clause clause : prefixClause.getClauses()) {
+			QueryBuilder clauseQb = visit(clause);
+			if(clauseQb != null) {
+				booleanQb.must(clauseQb);
+			}
+		}
+		*/
+		
+		List<QueryBuilder> spanClauseQbs = new ArrayList<QueryBuilder>();
 		this.spanEnabled = true;
 		for(Clause clause : prefixClause.getClauses()) {
 			QueryBuilder clauseQb = visit(clause);
 			if(clauseQb != null) {
-				clauseQbs.add(clauseQb);
+				spanClauseQbs.add(clauseQb);
 			}
 		}
 		this.spanEnabled = false;
 		
-		if(clauseQbs.size() > 1) {
-			SpanNearQueryBuilder queryBuilder = spanNearQuery((SpanQueryBuilder) clauseQbs.get(0), slop);
-			for(int i = 1; i < clauseQbs.size() ; i++) {
-				queryBuilder.addClause((SpanQueryBuilder) clauseQbs.get(i));
+		if(spanClauseQbs.size() > 1) {
+			SpanNearQueryBuilder queryBuilder = spanNearQuery((SpanQueryBuilder) spanClauseQbs.get(0), slop);
+			for(int i = 1; i < spanClauseQbs.size() ; i++) {
+				queryBuilder.addClause((SpanQueryBuilder) spanClauseQbs.get(i));
 			}
 			queryBuilder.inOrder(inOrder);
 			
@@ -485,13 +501,21 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			this.spanEnabled = false;
 			
 			if(clauseSpanQbs.size() == 2) {
-				SpanQueryBuilder include = (SpanQueryBuilder) clauseSpanQbs.get(0);
-				SpanQueryBuilder exclude = (SpanQueryBuilder) clauseSpanQbs.get(1);
-				SpanNotQueryBuilder distanceQueryBuilder = spanNotQuery(include, exclude);
-				distanceQueryBuilder.dist(dist);
+				//SpanQueryBuilder include = (SpanQueryBuilder) clauseSpanQbs.get(0);
+				//SpanQueryBuilder exclude = (SpanQueryBuilder) clauseSpanQbs.get(1);
+				//SpanNotQueryBuilder distanceQueryBuilder = spanNotQuery(include, exclude);
+				//distanceQueryBuilder.dist(dist);
 			
-				booleanQb.must(distanceQueryBuilder);
+				//booleanQb.must(distanceQueryBuilder);
 			
+				SpanNearQueryBuilder distanceQueryBuilder = spanNearQuery((SpanQueryBuilder) clauseSpanQbs.get(0), dist);
+				for(int i = 1; i < clauseSpanQbs.size() ; i++) {
+					distanceQueryBuilder.addClause((SpanQueryBuilder) clauseSpanQbs.get(i));
+				}
+				distanceQueryBuilder.inOrder(false);
+				
+				booleanQb.mustNot(distanceQueryBuilder);
+				
 				return booleanQb;
 			}
 		}

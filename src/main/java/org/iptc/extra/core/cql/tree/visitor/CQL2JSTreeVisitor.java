@@ -1,5 +1,6 @@
 package org.iptc.extra.core.cql.tree.visitor;
 
+import org.iptc.extra.core.cql.SyntaxTree;
 import org.iptc.extra.core.cql.tree.Clause;
 import org.iptc.extra.core.cql.tree.CommentClause;
 import org.iptc.extra.core.cql.tree.Index;
@@ -66,6 +67,13 @@ public class CQL2JSTreeVisitor extends SyntaxTreeVisitor<String> {
 			buffer.append("@ref == ");
 			buffer.append(referenceClause.getRuleId());
 			buffer.append("</span>");
+			
+			SyntaxTree syntaxTree = referenceClause.getRuleSyntaxTree();
+			if(syntaxTree != null && syntaxTree.getRootNode() != null) {
+				buffer.append("<ul>");
+				buffer.append(visit(syntaxTree.getRootNode()));
+				buffer.append("</ul>");
+			}
 			
 			buffer.append("</li> ");
 			return buffer.toString();
