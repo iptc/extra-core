@@ -3,6 +3,6 @@ Core implementation of the IPTC EXTRA project
 
 See the other repositories of the IPTC EXTRA project:
 
-    https://github.com/iptc/extra-core
-    https://github.com/iptc/extra-rules 
+* https://github.com/iptc/extra-core
+* https://github.com/iptc/extra-rules 
 
