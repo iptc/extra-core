@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.iptc.extra.core.cql.CQLExtraParser;
+import org.iptc.extra.core.cql.SyntaxTree;
 import org.iptc.extra.core.cql.tree.Clause;
 import org.iptc.extra.core.cql.tree.CommentClause;
 import org.iptc.extra.core.cql.tree.Index;
@@ -19,6 +21,7 @@ import org.iptc.extra.core.cql.tree.Relation;
 import org.iptc.extra.core.cql.tree.SearchClause;
 import org.iptc.extra.core.cql.tree.SearchTerms;
 import org.iptc.extra.core.cql.tree.visitor.SyntaxTreeVisitor;
+import org.iptc.extra.core.types.Rule;
 import org.iptc.extra.core.types.Schema;
 
 public class TreeUtils {
@@ -304,4 +307,39 @@ public class TreeUtils {
 		List<ReferenceClause> references = visitor.visit(root);
 		return references;
 	}
+	
+	public static void validateReferenceRule(ReferenceClause reference, Schema schema) {
+		
+		Rule rule = reference.getRule();
+		
+		String query = rule.getQuery();	
+		
+		SyntaxTree syntaxTree = CQLExtraParser.parse(query);
+		reference.setRuleSyntaxTree(syntaxTree);
+		
+		//Node root = syntaxTree.getRootNode();
+		
+		//List<ErrorMessageNode> invalidNodes = ExtraValidator.validate(root, schema);
+		//Set<String> unmatchedIndices = TreeUtils.validateSchema(root, schema);
+		//List<ReferenceClause> references = TreeUtils.getReferences(root);
+	}
+
+	public static boolean isRuleValid(Rule rule, Schema schema) {
+		String query = rule.getQuery();	
+		
+		SyntaxTree syntaxTree = CQLExtraParser.parse(query);
+		Node root = syntaxTree.getRootNode();
+		
+		if(syntaxTree.hasErrors() || root == null) {
+			return false;
+		}
+		
+		
+		return true;
+		
+		//List<ErrorMessageNode> invalidNodes = ExtraValidator.validate(root, schema);
+		//Set<String> unmatchedIndices = TreeUtils.validateSchema(root, schema);
+		//List<ReferenceClause> references = TreeUtils.getReferences(root);
+	}
+
 }

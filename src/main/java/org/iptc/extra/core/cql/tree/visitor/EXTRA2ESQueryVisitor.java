@@ -40,7 +40,7 @@ import org.iptc.extra.core.types.Schema;
 
 import static org.elasticsearch.index.query.QueryBuilders.*;
 
-public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
+public class EXTRA2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 	
 	private String indexSuffix = "";
 	
@@ -48,11 +48,11 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 	
 	private Schema schema;
 	
-	public EXTRA2ESVisitor() {
+	public EXTRA2ESQueryVisitor() {
 		
 	}
 	
-	public EXTRA2ESVisitor(Schema schema) {
+	public EXTRA2ESQueryVisitor(Schema schema) {
 		this.schema = schema;
 	}
 
@@ -714,10 +714,10 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		query = query.toLowerCase();
 		
 		if(!searchClause.hasIndex()) {
-			return spanTermQuery("text_content", query);
+			return spanTermQuery("text_content" + indexSuffix, query);
 		}
 		else {
-			String index = searchClause.getIndex().getName();
+			String index = searchClause.getIndex().getName() + indexSuffix;
 			Relation relation = searchClause.getRelation();
 			
 			if(relation.is("any") || relation.is("=")) {
@@ -785,7 +785,8 @@ public class EXTRA2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		String query = searchTerms.getSearchTerm();
 		
 		if(relation.is("any") || relation.is("=") || relation.is("all")) {
-			QueryStringQueryBuilder queryBuilder = queryStringQuery(query);
+			query = StringUtils.join(searchTerms.getTerms(), "");
+			QueryStringQueryBuilder queryBuilder = queryStringQuery("/" + query + "/");
 			queryBuilder.field(index);
 			queryBuilder.analyzeWildcard(true);
 			

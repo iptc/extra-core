@@ -215,10 +215,12 @@ public class ElasticSearchClient {
 				.setRefreshPolicy(RefreshPolicy.IMMEDIATE)
 				.get();
 		
+		System.out.print(indexResponse.status());
+		
 		return indexResponse.status().getStatus();
 	}
 	
-	public ElasticSearchResponse<String> findRules(Document document, String indexName, String docType, int page, int nPerPage) throws IOException {
+	public ElasticSearchResponse<String> findRules(Document document, String indexName, int page, int nPerPage) throws IOException {
 		
 		XContentBuilder docBuilder = XContentFactory.jsonBuilder().startObject();
 		for(String fieldName : document.keySet()) {
@@ -247,7 +249,7 @@ public class ElasticSearchClient {
 		}
 		docBuilder.endObject();
 		
-		PercolateQueryBuilder percolateQuery = new PercolateQueryBuilder("query", docType, docBuilder.bytes());
+		PercolateQueryBuilder percolateQuery = new PercolateQueryBuilder("query", "queries", docBuilder.bytes());
 		
 		Integer from = (page - 1) * nPerPage;
 		Integer size = nPerPage;

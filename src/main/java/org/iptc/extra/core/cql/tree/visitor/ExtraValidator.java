@@ -75,7 +75,12 @@ public class ExtraValidator extends SyntaxTreeVisitor<List<ErrorMessageNode>> {
 			else {
 				if(schema != null) {
 					for(String index : indices) {
+						
 						Field field = schema.getField(index);
+						if(field == null && index.contains("text_content")) {
+							continue;
+						}
+						
 						if(!field.hasSentences && (extraOperator == ExtraOperator.SENTENCE || extraOperator == ExtraOperator.NOT_IN_SENTENCE)) {
 							ErrorMessageNode node = new ErrorMessageNode();
 							node.setErrorMessage(operator.toString() + " (" + extraOperator + ") cannot be applied on a field (" + index + ") without sentences");
