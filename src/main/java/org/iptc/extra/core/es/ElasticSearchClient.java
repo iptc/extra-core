@@ -15,6 +15,7 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
+import org.elasticsearch.client.IndicesAdminClient;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.text.Text;
@@ -194,17 +195,7 @@ public class ElasticSearchClient {
 		return hits.getTotalHits();
 	}
 	
-	public boolean createPercolateIndex(String indexName) {
-		PutMappingResponse response = client.admin().indices()
-			.preparePutMapping(indexName)
-			.setSource("query", "type=percolator")
-			.get();
-		
-		return response.isAcknowledged();
-	}
-	
 	public int submitRule(String id, QueryBuilder qb, String indexName) throws IOException {
-		
 		XContentBuilder query = XContentFactory.jsonBuilder()
 				.startObject()
 				.field("query", qb)
@@ -214,8 +205,6 @@ public class ElasticSearchClient {
 				.setSource(query)
 				.setRefreshPolicy(RefreshPolicy.IMMEDIATE)
 				.get();
-		
-		System.out.print(indexResponse.status());
 		
 		return indexResponse.status().getStatus();
 	}
@@ -249,7 +238,7 @@ public class ElasticSearchClient {
 		}
 		docBuilder.endObject();
 		
-		PercolateQueryBuilder percolateQuery = new PercolateQueryBuilder("query", "queries", docBuilder.bytes());
+		PercolateQueryBuilder percolateQuery = new PercolateQueryBuilder("query", "doc", docBuilder.bytes());
 		
 		Integer from = (page - 1) * nPerPage;
 		Integer size = nPerPage;
@@ -272,4 +261,200 @@ public class ElasticSearchClient {
 		return resp;
 	}
 		
+	private boolean createSchemaPercolateMapping(Schema schema) throws IOException {
+		
+		IndicesAdminClient indicesClient = client.admin().indices();
+		boolean exists = indicesClient.prepareExists(schema.getId()).execute().actionGet().isExists();
+		if(!exists) {
+			
+			XContentBuilder settingBuilder = XContentFactory.jsonBuilder().startObject();
+			
+			settingBuilder.startObject("settings").startObject("analysis");
+			settingBuilder.startObject("filter");
+			addIndexFilters(settingBuilder, "english");
+			addIndexFilters(settingBuilder, "german");
+			settingBuilder.endObject().startObject("analyzer");
+			addIndexAnalyzers(settingBuilder, "english");
+			addIndexAnalyzers(settingBuilder, "german");
+			settingBuilder.endObject();
+			settingBuilder.endObject().endObject().endObject();
+			
+			indicesClient.prepareCreate(schema.getId())
+				.setSource(settingBuilder)
+				.get();
+		}
+		
+		XContentBuilder mappingBuilder = XContentFactory.jsonBuilder().startObject();
+		mappingBuilder.startObject("properties");
+		mappingBuilder.startObject("query");
+		mappingBuilder.field("type", "percolator");
+		mappingBuilder.endObject();
+		mappingBuilder.endObject();
+		mappingBuilder.endObject();
+		
+		PutMappingResponse mappingResponse = indicesClient.preparePutMapping(schema.getId())
+				.setType("queries")
+				.setSource(mappingBuilder)
+				.get();
+
+		return mappingResponse.isAcknowledged();
+	}
+	
+	public boolean createSchemaMapping(Schema schema) throws IOException {
+		
+		createSchemaPercolateMapping(schema);
+		
+		String lang = schema.getLanguage();
+		
+		XContentBuilder mappingBuilder = XContentFactory.jsonBuilder().startObject();
+		mappingBuilder.startObject("properties");
+		for(String fieldName : schema.getFieldNames()) {
+			
+			Field field = schema.getField(fieldName);
+			if(field.textual) {
+				addFieldMapping(mappingBuilder, fieldName, lang + "_non_stemming_analyzer");
+				addFieldMapping(mappingBuilder, "literal_" + fieldName, lang + "_literal_analyzer");
+				addFieldMapping(mappingBuilder, "stemmed_" + fieldName, lang + "_stemming_analyzer");
+				addFieldMapping(mappingBuilder, "case_sensitive_" + fieldName, lang + "_case_sensitive_analyzer");
+				
+				if(field.hasSentences) {
+					addNestedFieldMapping(mappingBuilder, fieldName + "_sentences", "sentence", lang + "_non_stemming_analyzer");
+					addNestedFieldMapping(mappingBuilder, "literal_" + fieldName + "_sentences", "sentence", lang + "_literal_analyzer");
+					addNestedFieldMapping(mappingBuilder, "stemmed_" + fieldName + "_sentences", "sentence", lang + "_stemming_analyzer");
+					addNestedFieldMapping(mappingBuilder, "case_sensitive_" + fieldName + "_sentences", "sentence", lang + "_case_sensitive_analyzer");
+				}
+				
+				if(field.hasParagraphs) {
+					addNestedFieldMapping(mappingBuilder, fieldName + "_paragraphs", "paragraph", lang + "_non_stemming_analyzer");
+					addNestedFieldMapping(mappingBuilder, "literal_" + fieldName + "_paragraphs", "paragraph", lang + "_literal_analyzer");
+					addNestedFieldMapping(mappingBuilder, "stemmed_" + fieldName + "_paragraphs", "paragraph", lang + "_stemming_analyzer");
+					addNestedFieldMapping(mappingBuilder, "case_sensitive_" + fieldName + "_paragraphs", "paragraph", lang + "_case_sensitive_analyzer");
+				}
+			}
+			else {
+				mappingBuilder.startObject(fieldName);
+				mappingBuilder.field("type", "keyword");
+				mappingBuilder.endObject();
+			}
+
+		}
+		mappingBuilder.endObject();
+		mappingBuilder.endObject();
+		
+		PutMappingResponse mappingResponse = client.admin().indices().preparePutMapping(schema.getId())
+			.setType("doc")
+			.setSource(mappingBuilder)
+			.get();
+
+		return mappingResponse.isAcknowledged();
+	}
+
+	private void addFieldMapping(XContentBuilder mappingBuilder, String fieldName, String analyzer) throws IOException {
+		mappingBuilder.startObject(fieldName);
+		mappingBuilder.field("type", "text");
+		mappingBuilder.field("analyzer", analyzer);
+		mappingBuilder.endObject();
+	}
+	
+	private void addNestedFieldMapping(XContentBuilder mappingBuilder, String fieldName, String subFieldName, String analyzer) throws IOException {
+		mappingBuilder.startObject(fieldName);
+		mappingBuilder.field("type", "nested");
+		mappingBuilder.startObject("properties");
+		mappingBuilder.startObject(subFieldName);
+		mappingBuilder.field("type", "text");
+		mappingBuilder.field("analyzer", analyzer);
+		mappingBuilder.endObject();
+		mappingBuilder.endObject();
+		mappingBuilder.endObject();
+	}
+	
+	private void addIndexFilters(XContentBuilder mappingBuilder, String lang) throws IOException {
+		
+		mappingBuilder.startObject(lang + "_stop");
+		mappingBuilder.field("type", "stop");
+		mappingBuilder.field("stopwords", "_" + lang + "_");
+		mappingBuilder.endObject();
+		
+		if(lang.equals("english")) {
+			mappingBuilder.startObject("english_possessive_stemmer");
+			mappingBuilder.field("type", "stemmer");
+			mappingBuilder.field("language", "possessive_english");
+			mappingBuilder.endObject();
+			
+			mappingBuilder.startObject("english_stemmer");
+			mappingBuilder.field("type", "stemmer");
+			mappingBuilder.field("language", "english");
+			mappingBuilder.endObject();
+		}
+		
+		if(lang.equals("german")) {
+			mappingBuilder.startObject("german_stemmer");
+			mappingBuilder.field("type", "stemmer");
+			mappingBuilder.field("language", "light_german");
+			mappingBuilder.endObject();
+		}
+	}
+	
+	
+	private void addIndexAnalyzers(XContentBuilder mappingBuilder, String lang) throws IOException {
+		
+		if(lang.equals("english")) {
+			mappingBuilder.startObject("english_stemming_analyzer");
+			mappingBuilder.field("tokenizer", "standard");
+			mappingBuilder.startArray("filter").value("english_possessive_stemmer").value("lowercase").value("english_stop").value("english_stemmer");
+			mappingBuilder.endArray().endObject();
+			
+			mappingBuilder.startObject("english_non_stemming_analyzer");
+			mappingBuilder.field("tokenizer", "standard");
+			mappingBuilder.startArray("filter").value("lowercase").value("english_stop");
+			mappingBuilder.endArray().endObject();
+			
+			mappingBuilder.startObject("english_case_sensitive_analyzer");
+			mappingBuilder.field("tokenizer", "standard");
+			mappingBuilder.startArray("filter").value("english_stop");
+			mappingBuilder.endArray().endObject();
+			
+			mappingBuilder.startObject("english_literal_analyzer");
+			mappingBuilder.field("tokenizer", "standard");
+			mappingBuilder.startArray("filter").value("lowercase").value("english_stop");
+			mappingBuilder.endArray().endObject();
+		}
+		
+		if(lang.equals("german")) {
+			mappingBuilder.startObject("german_stemming_analyzer");
+			mappingBuilder.field("tokenizer", "standard");
+			mappingBuilder.startArray("filter").value("lowercase").value("german_stop").value("german_normalization").value("english_stemmer");
+			mappingBuilder.endArray().endObject();
+			
+			mappingBuilder.startObject("german_non_stemming_analyzer");
+			mappingBuilder.field("tokenizer", "standard");
+			mappingBuilder.startArray("filter").value("lowercase").value("german_stop").value("german_normalization");
+			mappingBuilder.endArray().endObject();
+			
+			mappingBuilder.startObject("german_case_sensitive_analyzer");
+			mappingBuilder.field("tokenizer", "standard");
+			mappingBuilder.startArray("filter").value("german_stop").value("german_normalization");
+			mappingBuilder.endArray().endObject();
+			
+			mappingBuilder.startObject("german_literal_analyzer");
+			mappingBuilder.field("tokenizer", "whitespace");
+			mappingBuilder.startArray("filter").value("lowercase").value("german_stop").value("german_normalization");
+			mappingBuilder.endArray().endObject();
+		}
+		
+	}
+	
+	
+	public static void main(String...args) throws IOException {
+		ElasticSearchClient client = new ElasticSearchClient("160.40.50.207", 9300);
+		
+		Schema schema =  new Schema();
+		schema.setLanguage("german");
+		schema.addField("title", true, true, false);
+		schema.addField("subtitle", true, true, false);
+		schema.addField("body", true, true, true);
+		schema.addField("slugline", false, false, false);
+		
+		client.createSchemaMapping(schema);
+	}
 }

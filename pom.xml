@@ -87,6 +87,56 @@
         	<artifactId>antlr4-runtime</artifactId>
         	<version>4.5.3</version>
         </dependency>
+        
+        		<dependency>
+			<groupId>edu.stanford.nlp</groupId>
+			<artifactId>stanford-corenlp</artifactId>
+			<version>3.7.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.lucene</groupId>
+					<artifactId>lucene-queryparser</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.lucene</groupId>
+					<artifactId>lucene-queries</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.lucene</groupId>
+					<artifactId>lucene-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.lucene</groupId>
+					<artifactId>lucene-analyzers-common</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		
+		<dependency>
+  			<groupId>edu.stanford.nlp</groupId>
+  			<artifactId>stanford-corenlp</artifactId>
+  			<version>3.7.0</version>
+  			<classifier>models</classifier>
+  			<exclusions>
+				<exclusion>
+					<groupId>org.apache.lucene</groupId>
+					<artifactId>lucene-queryparser</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.lucene</groupId>
+					<artifactId>lucene-queries</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.lucene</groupId>
+					<artifactId>lucene-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.lucene</groupId>
+					<artifactId>lucene-analyzers-common</artifactId>
+				</exclusion>
+			</exclusions>
+  		</dependency>
+  		
   	</dependencies>
     
     <!--

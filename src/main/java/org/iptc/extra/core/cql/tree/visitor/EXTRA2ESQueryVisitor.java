@@ -598,7 +598,7 @@ public class EXTRA2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 	@Override
 	public QueryBuilder visitSearchClause(SearchClause searchClause) {
 		if(spanEnabled) {
-			return searchClausetoSpan(searchClause);
+			return searchClausetoESSpan(searchClause);
 		}
 		else {
 			if(searchClause.hasIndex()) {
@@ -707,7 +707,7 @@ public class EXTRA2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		return null;	
 	}
 	
-	private SpanQueryBuilder searchClausetoSpan(SearchClause searchClause) {
+	private SpanQueryBuilder searchClausetoESSpan(SearchClause searchClause) {
 		
 		SearchTerms searchTerms = searchClause.getSearchTerms();
 		String query = searchTerms.getSearchTerm();
@@ -721,6 +721,23 @@ public class EXTRA2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			Relation relation = searchClause.getRelation();
 			
 			if(relation.is("any") || relation.is("=")) {
+				if(relation.hasModifier("regexp")) {
+					MultiTermQueryBuilder qb = (MultiTermQueryBuilder) regexpQuery(index, query);
+					return spanMultiTermQueryBuilder(qb);
+				}
+				
+				String[] queryTerms = query.trim().split("\\s+");
+				if(queryTerms.length > 1) {
+					SpanTermQueryBuilder initialSpan = spanTermQuery(index, queryTerms[0]);
+					SpanOrQueryBuilder spanOr = spanOrQuery(initialSpan);
+					
+					for(int i = 1 ; i < queryTerms.length; i++) {
+						spanOr.addClause(spanTermQuery(index, queryTerms[i]));
+					}
+					
+					return spanOr;
+				}
+				
 				return spanTermQuery(index, query);
 			}
 			else if (relation.is("==")) {
@@ -736,7 +753,6 @@ public class EXTRA2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 				
 			}
 			else if (relation.is("adj")) {
-				
 				String[] queryTerms = query.trim().split("\\s+");
 				if(queryTerms.length > 1) {
 					SpanTermQueryBuilder initialSpan = spanTermQuery(index, queryTerms[0]);
@@ -856,11 +872,15 @@ public class EXTRA2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		else {
 			QueryBuilder qb;
 			if(schema == null) {
-				qb = matchQuery("text_content", searchTerms.getSearchTerm());
+				qb = matchQuery("text_content", searchTerms.getSearchTerm())
+						.operator(org.elasticsearch.index.query.Operator.AND);
 			}
 			else {
 				Set<String> fields = schema.getTextualFieldNames();
-				qb = multiMatchQuery(searchTerms.getSearchTerm(), fields.toArray(new String[fields.size()]));
+				String[] fieldNames = fields.toArray(new String[fields.size()]);
+				
+				qb = multiMatchQuery(searchTerms.getSearchTerm(), fieldNames)
+						.operator(org.elasticsearch.index.query.Operator.AND);
 			}
 			
 			return qb;
