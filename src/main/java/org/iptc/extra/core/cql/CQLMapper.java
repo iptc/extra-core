@@ -11,7 +11,7 @@ import org.iptc.extra.core.types.Schema;
 
 public class CQLMapper {
 
-	public QueryBuilder toElasticSearch(Node root, Schema schema) {
+	public QueryBuilder toElasticSearchQuery(Node root, Schema schema) {
 		if(root == null) {
 			return null;
 		}	
@@ -22,6 +22,17 @@ public class CQLMapper {
 		return qb;
 	}
 
+	public QueryBuilder toElasticSearchHighligh(Node root, Schema schema) {
+		if(root == null) {
+			return null;
+		}	
+
+		EXTRA2ESQueryVisitor visitor = new EXTRA2ESQueryVisitor(schema);
+		QueryBuilder qb = visitor.visit(root);
+		
+		return qb;
+	}
+	
 	public String toHtml(Node root, String htmlTag) {
 		CQL2HTMLVisitor visitor = new CQL2HTMLVisitor(htmlTag);	
 		String html = visitor.visit(root);
