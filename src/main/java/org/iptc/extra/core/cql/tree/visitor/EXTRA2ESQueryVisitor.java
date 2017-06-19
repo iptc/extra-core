@@ -15,6 +15,7 @@ import org.elasticsearch.index.query.NestedQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.elasticsearch.index.query.RangeQueryBuilder;
+import org.elasticsearch.index.query.ScriptQueryBuilder;
 import org.elasticsearch.index.query.SpanMultiTermQueryBuilder;
 import org.elasticsearch.index.query.SpanNearQueryBuilder;
 import org.elasticsearch.index.query.SpanNotQueryBuilder;
@@ -22,7 +23,7 @@ import org.elasticsearch.index.query.SpanOrQueryBuilder;
 import org.elasticsearch.index.query.SpanQueryBuilder;
 import org.elasticsearch.index.query.SpanTermQueryBuilder;
 import org.elasticsearch.index.query.WildcardQueryBuilder;
-
+import org.elasticsearch.script.Script;
 import org.iptc.extra.core.cql.SyntaxTree;
 import org.iptc.extra.core.cql.tree.Clause;
 import org.iptc.extra.core.cql.tree.CommentClause;
@@ -101,11 +102,11 @@ public class EXTRA2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		}
 		
 		if(extraOperator == ExtraOperator.MAXIMUM_OCCURRENCE) {
-			return orToES(prefixClause);
+			return occurenceToES(prefixClause);
 		}
 
 		if(extraOperator == ExtraOperator.MINIMUM_OCCURRENCE) {
-			return orToES(prefixClause);
+			return occurenceToES(prefixClause);
 		}
 		
 		if(extraOperator == ExtraOperator.ORDER) {
@@ -122,6 +123,30 @@ public class EXTRA2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		
 		return null;
 		
+	}
+	
+	private QueryBuilder occurenceToES(PrefixClause prefixClause) {
+		Operator operator = prefixClause.getOperator();
+		Modifier modifier = operator.getModifier("count");
+		String comparitor = modifier.getComparitor();
+		String value = modifier.getValue();
+		
+		for(SearchClause searchClause : prefixClause.getSearchClause()) {
+			String field = (searchClause.getIndex() == null) ? "text_content" : searchClause.getIndex().getName();
+
+			SearchTerms searchTerms = searchClause.getSearchTerms();
+			for(String term : searchTerms.getTerms()) {
+				String code = "doc['" + field + "'].get('" + term + "', 0).tf() " + comparitor + " " + value;
+				Script script = new Script(code);
+			
+				ScriptQueryBuilder query = scriptQuery(script);
+				return query;
+			}
+		}
+		
+		
+		
+		return null;
 	}
 	
 	private QueryBuilder andToES(PrefixClause prefixClause) {
