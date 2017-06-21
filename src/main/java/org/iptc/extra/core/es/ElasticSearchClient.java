@@ -10,11 +10,13 @@ import java.util.List;
 import java.util.Map;
 
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
+import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
+import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.IndicesAdminClient;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
@@ -24,6 +26,7 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.percolator.PercolateQueryBuilder;
+import org.elasticsearch.script.Script;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
@@ -42,6 +45,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+
+import static org.elasticsearch.index.query.QueryBuilders.*;
 
 public class ElasticSearchClient {
 
@@ -196,20 +201,50 @@ public class ElasticSearchClient {
 	}
 	
 	public int submitRule(String id, QueryBuilder qb, String indexName) throws IOException {
-		XContentBuilder query = XContentFactory.jsonBuilder()
-				.startObject()
-				.field("query", qb)
-				.endObject();
+		return submitRule(id, qb, indexName, null);
+	}
+	
+	public int submitRule(String id, QueryBuilder qb, String indexName, String groupId) throws IOException {
+		GetResponse response = client.prepareGet(indexName, "queries", id).setRefresh(true).execute().actionGet();
+		if(response.isExists()) {
+			
+			UpdateResponse updateResponse = client.prepareUpdate(indexName, "queries", id)
+					.setDoc(XContentFactory.jsonBuilder()               
+		            .startObject()
+		                .field("query", qb)
+		            .endObject())
+					.get();
+			
+			Script script = new Script("ctx._source.group.add(\"" + groupId + "\");");
+			updateResponse = client.prepareUpdate(indexName, "queries", id)
+						.setScript(script)
+						.get();
+			 
+			return updateResponse.status().getStatus();
+		}
+		else {
+			XContentBuilder query = XContentFactory.jsonBuilder().startObject().field("query", qb);
+			if(groupId != null) {
+				query.array("group", groupId);
+			}
+			query.endObject();
+			
+			IndexResponse indexResponse = client.prepareIndex(indexName, "queries", id)
+					.setSource(query)
+					.setRefreshPolicy(RefreshPolicy.IMMEDIATE)
+					.get();	
+			
+			return indexResponse.status().getStatus();
+		}
 		
-		IndexResponse indexResponse = client.prepareIndex(indexName, "queries", id)
-				.setSource(query)
-				.setRefreshPolicy(RefreshPolicy.IMMEDIATE)
-				.get();
 		
-		return indexResponse.status().getStatus();
 	}
 	
 	public ElasticSearchResponse<String> findRules(Document document, String indexName, int page, int nPerPage) throws IOException {
+		return findRules(document, indexName, null, page, nPerPage);
+	}
+	
+	public ElasticSearchResponse<String> findRules(Document document, String indexName, String group, int page, int nPerPage) throws IOException {
 		
 		XContentBuilder docBuilder = XContentFactory.jsonBuilder().startObject();
 		for(String fieldName : document.keySet()) {
@@ -238,13 +273,21 @@ public class ElasticSearchClient {
 		}
 		docBuilder.endObject();
 		
-		PercolateQueryBuilder percolateQuery = new PercolateQueryBuilder("query", "doc", docBuilder.bytes());
+		QueryBuilder query;
+		if(group != null) {
+			query = boolQuery()
+					.must(new PercolateQueryBuilder("query", "doc", docBuilder.bytes()))
+					.must(termQuery("group", group));
+		}
+		else {
+			query = new PercolateQueryBuilder("query", "doc", docBuilder.bytes());
+		}
 		
 		Integer from = (page - 1) * nPerPage;
 		Integer size = nPerPage;
 		
 		SearchResponse response = client.prepareSearch(indexName)
-		        .setQuery(percolateQuery)
+		        .setQuery(query)
 		        .setFrom(from)
 		        .setSize(size)
 		        .get();
@@ -284,13 +327,13 @@ public class ElasticSearchClient {
 				.get();
 		}
 		
-		XContentBuilder mappingBuilder = XContentFactory.jsonBuilder().startObject();
-		mappingBuilder.startObject("properties");
-		mappingBuilder.startObject("query");
-		mappingBuilder.field("type", "percolator");
-		mappingBuilder.endObject();
-		mappingBuilder.endObject();
-		mappingBuilder.endObject();
+		XContentBuilder mappingBuilder = XContentFactory.jsonBuilder()
+				.startObject()
+					.startObject("properties")
+						.startObject("query").field("type", "percolator").endObject()
+						.startObject("group").field("type", "keyword").endObject()
+					.endObject()
+				.endObject();
 		
 		PutMappingResponse mappingResponse = indicesClient.preparePutMapping(schema.getId())
 				.setType("queries")
