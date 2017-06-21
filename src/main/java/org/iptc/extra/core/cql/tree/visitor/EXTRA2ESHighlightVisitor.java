@@ -221,7 +221,7 @@ public class EXTRA2ESHighlightVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 				if(schema != null && !schema.getTextualFieldNames().isEmpty()) {
 					Set<String> fields = schema.getTextualFieldNames();
 					MultiMatchQueryBuilder qb = multiMatchQuery(mergedSearchTerms.getSearchTerm(), fields.toArray(new String[fields.size()]));
-					
+		
 					return qb;
 				}
 				else {
@@ -268,7 +268,10 @@ public class EXTRA2ESHighlightVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		else if (queryBuilder instanceof BoolQueryBuilder) {
 			((BoolQueryBuilder) queryBuilder).minimumShouldMatch(mimimum);
 		}
-			
+		else if(queryBuilder instanceof MultiMatchQueryBuilder) {
+			((MultiMatchQueryBuilder) queryBuilder).minimumShouldMatch(mimimum.toString());
+		}
+		
 		return queryBuilder;
 	}
 	

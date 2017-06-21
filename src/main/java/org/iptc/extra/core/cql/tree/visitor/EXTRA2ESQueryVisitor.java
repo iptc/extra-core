@@ -243,7 +243,7 @@ public class EXTRA2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			if(TreeUtils.areSearchTermClauses(childrenClauses)) {
 				
 				SearchTerms mergedSearchTerms = TreeUtils.mergeTerms(childrenClauses);
-				if(schema != null && !schema.getTextualFieldNames().isEmpty()) {
+				if(schema != null && !schema.getTextualFieldNames().isEmpty() && indexSuffix.equals("")) {
 					Set<String> fields = schema.getTextualFieldNames();
 					MultiMatchQueryBuilder qb = multiMatchQuery(mergedSearchTerms.getSearchTerm(), fields.toArray(new String[fields.size()]));
 					
@@ -251,7 +251,7 @@ public class EXTRA2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 				}
 				else {
 					QueryStringQueryBuilder queryBuilder = queryStringQuery(mergedSearchTerms.getSearchTerm());
-					queryBuilder.defaultField("text_content");
+					queryBuilder.defaultField("text_content" + indexSuffix);
 					
 					if(mergedSearchTerms.hasWildcards()) {	
 						queryBuilder.analyzeWildcard(true);
@@ -293,7 +293,10 @@ public class EXTRA2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		else if (queryBuilder instanceof BoolQueryBuilder) {
 			((BoolQueryBuilder) queryBuilder).minimumShouldMatch(mimimum);
 		}
-			
+		else if(queryBuilder instanceof MultiMatchQueryBuilder) {
+			((MultiMatchQueryBuilder) queryBuilder).minimumShouldMatch(mimimum.toString());
+		}
+		
 		return queryBuilder;
 	}
 	
@@ -317,24 +320,55 @@ public class EXTRA2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		List<SearchClause> searchClauses = prefixClause.getSearchClause();
 		Set<String> indices = TreeUtils.getIndices(prefixClause);
 		
-		if(indices.size() != 1) {
+		if(indices.size() > 1) {
 			// the operator has clauses with multiple indices specified 
 			return null;
 		}
 		
-		String index = indices.toArray()[0] + "_paragraphs";
+		String index;
+		if(indices.size() == 1) {
+			index = indices.toArray()[0] + "_paragraphs";
+		}
+		else {
+			index = "text_content_paragraphs";
+		}
+
+		String prefix = "";
+		for(SearchClause searchClause : searchClauses) {
+			Relation relation = searchClause.getRelation();
+			if(relation != null && relation.hasModifier("stemming")) {
+				prefix = "stemmed_";
+				break;
+			}
+		}
+		
 		if(searchClauses.size() == prefixClause.getClauses().size()) {
 			BoolQueryBuilder booleanQb = boolQuery();
-			for(SearchClause searchClause : searchClauses) {
-				QueryBuilder clauseQb = searchClausetoES(index + ".paragraph", searchClause.getRelation(), searchClause.getSearchTerms());
-				if(clauseQb != null) {
-					booleanQb.must(clauseQb);
+			if(indices.size() == 1) {
+				for(SearchClause searchClause : searchClauses) {
+					QueryBuilder clauseQb = searchClausetoES(index + ".paragraph", searchClause.getRelation(), searchClause.getSearchTerms());
+					if(clauseQb != null) {
+						booleanQb.must(clauseQb);
+					}
 				}
-			}
 				
-			NestedQueryBuilder nestedQb = nestedQuery(index, booleanQb, ScoreMode.Total);
-			return nestedQb;
-			
+				NestedQueryBuilder nestedQb = nestedQuery(index, booleanQb, ScoreMode.Total);
+				return nestedQb;
+				
+			}	
+			else {
+				Relation relation = new Relation("="); 
+				for(SearchClause searchClause : searchClauses) {
+					QueryBuilder clauseQueryBuilder = searchClausetoES(index + ".paragraph", relation, searchClause.getSearchTerms());
+					if(clauseQueryBuilder != null) {
+						booleanQb.must(clauseQueryBuilder);
+					}
+				}
+				
+				NestedQueryBuilder nestedQb = nestedQuery(prefix + index, booleanQb, ScoreMode.Total);
+				return nestedQb;
+			}
+
 		}
 		else {
 			indexSuffix = "_paragraphs.paragraph";
@@ -394,6 +428,15 @@ public class EXTRA2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			index = "text_content_sentences";
 		}
 		
+		String prefix = "";
+		for(SearchClause searchClause : searchClauses) {
+			Relation relation = searchClause.getRelation();
+			if(relation != null && relation.hasModifier("stemming")) {
+				prefix = "stemmed_";
+				break;
+			}
+		}
+		
 		if(searchClauses.size() == prefixClause.getClauses().size()) {
 			BoolQueryBuilder booleanQb = boolQuery();
 			if(indices.size() == 1) {
@@ -403,7 +446,7 @@ public class EXTRA2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 						booleanQb.must(clauseQueryBuilder);
 					}
 				}
-				NestedQueryBuilder nestedQb = nestedQuery(index, booleanQb, ScoreMode.Total);
+				NestedQueryBuilder nestedQb = nestedQuery(prefix + index, booleanQb, ScoreMode.Total);
 				return nestedQb;
 			}
 			else {
@@ -414,7 +457,7 @@ public class EXTRA2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 						booleanQb.must(clauseQueryBuilder);
 					}
 				}
-				NestedQueryBuilder nestedQb = nestedQuery(index, booleanQb, ScoreMode.Total);
+				NestedQueryBuilder nestedQb = nestedQuery(prefix + index, booleanQb, ScoreMode.Total);
 				return nestedQb;
 			}
 		}
@@ -896,8 +939,8 @@ public class EXTRA2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		}
 		else {
 			QueryBuilder qb;
-			if(schema == null) {
-				qb = matchQuery("text_content", searchTerms.getSearchTerm())
+			if(schema == null || !indexSuffix.equals("")) {
+				qb = matchQuery("text_content" + indexSuffix, searchTerms.getSearchTerm())
 						.operator(org.elasticsearch.index.query.Operator.AND);
 			}
 			else {

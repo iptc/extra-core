@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.iptc.extra.core.cql.tree.Clause;
 import org.iptc.extra.core.cql.tree.ErrorMessageNode;
 import org.iptc.extra.core.cql.tree.Index;
 import org.iptc.extra.core.cql.tree.Node;
@@ -46,11 +47,24 @@ public class ExtraValidator extends SyntaxTreeVisitor<List<ErrorMessageNode>> {
 				extraOperator == ExtraOperator.ORDER || extraOperator == ExtraOperator.ORDER_AND_DISTANCE || extraOperator == ExtraOperator.NOT_IN_PHRASE) {
 			
 			if(prefixClause.getClauses().size() != 2) {
-				ErrorMessageNode node = new ErrorMessageNode();
-				node.setErrorMessage(operator.toString() + " (" + extraOperator + ") has invalid number of statement. Only 2 statements are permitted.");
+				if(prefixClause.getClauses().size() == 1 && (extraOperator == ExtraOperator.SENTENCE || extraOperator == ExtraOperator.NOT_IN_SENTENCE ||
+						extraOperator == ExtraOperator.PARAGRAPH || extraOperator == ExtraOperator.NOT_IN_PARAGRAPH)) {
+					Clause childClause = prefixClause.getClause(0);	
+					if(!(childClause instanceof PrefixClause) || !ExtraOperator.isWordDistanceOperator(((PrefixClause) childClause).getExtraOperator())) {
+						ErrorMessageNode node = new ErrorMessageNode();
+						node.setErrorMessage(operator.toString() + " (" + extraOperator + ") has invalid sub-statement. Only distance operators are permitted in single statements.");
+					
+						invalidNodes.add(node);
+						operator.setValid(false);
+					}
+				}
+				else {
+					ErrorMessageNode node = new ErrorMessageNode();
+					node.setErrorMessage(operator.toString() + " (" + extraOperator + ") has invalid number of statement. Only 2 statements are permitted.");
 				
-				invalidNodes.add(node);
-				operator.setValid(false);
+					invalidNodes.add(node);
+					operator.setValid(false);
+				}
 			}
 			
 			Set<String> indices = TreeUtils.getIndices(prefixClause);

@@ -139,4 +139,9 @@ public enum ExtraOperator {
 		return false;
 	}
 	
+	public static boolean isWordDistanceOperator(ExtraOperator extraOperator) {
+		return (extraOperator == ExtraOperator.DISTANCE || extraOperator == ExtraOperator.NOT_WITHIN_DISTANCE || 
+				extraOperator == ExtraOperator.ORDER || extraOperator == ExtraOperator.ORDER_AND_DISTANCE || 
+				extraOperator == ExtraOperator.NOT_IN_PHRASE);
+	}
 }

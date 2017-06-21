@@ -35,7 +35,11 @@ public class PrefixClause extends Clause {
 	public List<Clause> getClauses() {
 		return clauses;
 	}
-
+	
+	public Clause getClause(int index) {
+		return clauses.get(index);
+	}
+	
 	public List<SearchClause> getSearchClause() {
 		 List<SearchClause> searchClauses = new ArrayList<SearchClause>();
 		 for(Clause clause : clauses) {
