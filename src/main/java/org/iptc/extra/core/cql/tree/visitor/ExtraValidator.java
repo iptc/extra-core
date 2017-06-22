@@ -147,11 +147,11 @@ public class ExtraValidator extends SyntaxTreeVisitor<List<ErrorMessageNode>> {
 		}
 		
 		SearchTerms searchTerms = searchClause.getSearchTerms();
-		if(searchTerms.hasWildcards()) {
+		if(searchTerms.isRegexp()) {
 			
 			if(relation.hasModifier("stemming")) {
 				ErrorMessageNode node = new ErrorMessageNode();
-				node.setErrorMessage(relation.toString() + ". Stemming cannot be mixed with wildcards: " + searchTerms);
+				node.setErrorMessage(relation.toString() + ". Stemming cannot be mixed with regex: " + searchTerms);
 				
 				invalidRelations.add(node);
 				relation.setValid(false);
@@ -159,7 +159,7 @@ public class ExtraValidator extends SyntaxTreeVisitor<List<ErrorMessageNode>> {
 			
 			if(relation.is(">") || relation.is(">=") || relation.is("<") || relation.is("<=") || relation.is("within") || relation.is(">")) {
 				ErrorMessageNode node = new ErrorMessageNode();
-				node.setErrorMessage(relation.getRelation() + " relation cannot be mixed with wildcards: " + searchTerms);
+				node.setErrorMessage(relation.getRelation() + " relation cannot be mixed with regex: " + searchTerms);
 			
 				invalidRelations.add(node);
 				relation.setValid(false);

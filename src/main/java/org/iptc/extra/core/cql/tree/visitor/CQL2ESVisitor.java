@@ -3,7 +3,6 @@ package org.iptc.extra.core.cql.tree.visitor;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MatchQueryBuilder;
@@ -36,7 +35,7 @@ public class CQL2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			SearchTerms mergedSearchTerms = TreeUtils.mergeTerms(childrenClauses);
 			
 			QueryStringQueryBuilder queryBuilder = queryStringQuery(mergedSearchTerms.getSearchTerm());
-			if(mergedSearchTerms.hasWildcards()) {
+			if(mergedSearchTerms.isRegexp()) {
 				queryBuilder.defaultField("text_content");
 			}
 			else {
@@ -180,11 +179,8 @@ public class CQL2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 
 	@Override
 	public QueryBuilder visitSearchTerms(SearchTerms searchTerms) {
-		if(searchTerms.hasWildcards()) {
-			
-			String searchTerm = StringUtils.join(searchTerms.getTerms(), " ");
-			WildcardQueryBuilder qb = wildcardQuery("text_content", searchTerm);
-			
+		if(searchTerms.isRegexp()) {
+			WildcardQueryBuilder qb = wildcardQuery("text_content", searchTerms.getRegexp(false));
 			return qb;
 		}
 		else {

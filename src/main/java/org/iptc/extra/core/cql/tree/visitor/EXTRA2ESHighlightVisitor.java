@@ -135,7 +135,7 @@ public class EXTRA2ESHighlightVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		if(TreeUtils.areSearchTermClauses(childrenClauses)) {
 			SearchTerms mergedSearchTerms = TreeUtils.mergeTerms(childrenClauses);
 
-			if(mergedSearchTerms.hasWildcards()) {
+			if(mergedSearchTerms.isRegexp()) {
 				QueryStringQueryBuilder queryBuilder = queryStringQuery(mergedSearchTerms.getSearchTerm());
 				queryBuilder.defaultOperator(org.elasticsearch.index.query.Operator.AND);
 				queryBuilder.defaultField("text_content");
@@ -228,7 +228,7 @@ public class EXTRA2ESHighlightVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 					QueryStringQueryBuilder queryBuilder = queryStringQuery(mergedSearchTerms.getSearchTerm());
 					queryBuilder.defaultField("text_content");
 					
-					if(mergedSearchTerms.hasWildcards()) {	
+					if(mergedSearchTerms.isRegexp()) {	
 						queryBuilder.analyzeWildcard(true);
 					}
 			
@@ -632,7 +632,7 @@ public class EXTRA2ESHighlightVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 	
 	private QueryBuilder searchClausetoES(String index, Relation relation, SearchTerms searchTerms) {
 		
-		boolean hasWildcards = searchTerms.hasWildcards();
+		boolean hasWildcards = searchTerms.isRegexp();
 		
 		String query = searchTerms.getSearchTerm();
 		if(hasWildcards && !relation.hasModifier("literal")) {
@@ -865,7 +865,7 @@ public class EXTRA2ESHighlightVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 	
 	@Override
 	public QueryBuilder visitSearchTerms(SearchTerms searchTerms) {
-		if(searchTerms.hasWildcards()) {
+		if(searchTerms.isRegexp()) {
 			
 			String searchTerm = StringUtils.join(searchTerms.getTerms(), " ");
 			WildcardQueryBuilder qb = wildcardQuery("text_content", searchTerm);

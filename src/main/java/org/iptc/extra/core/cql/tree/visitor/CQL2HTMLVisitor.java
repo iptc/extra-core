@@ -22,9 +22,11 @@ public class CQL2HTMLVisitor extends SyntaxTreeVisitor<String> {
 	public String visitPrefixClause(PrefixClause prefixClause) {
 		StringBuffer buffer = new StringBuffer();
 		
-		buffer.append("<" + htmlTag + " class=\"prefixClause\" data-depth=\"" + prefixClause.getDepth() + "\">");
-		buffer.append("(");
+		buffer.append("<" + htmlTag + " class=\"prefixClause\" data-depth=\"" + prefixClause.getDepth() + "\"" +
+				(prefixClause.getExtraOperator()!=null ? " operator=\"" + prefixClause.getExtraOperator() + "\"" : "") + 
+				">");
 		
+		buffer.append("(");
 		buffer.append(visit(prefixClause.getOperator()));
 		
 		for(Clause clause : prefixClause.getClauses()) {
@@ -42,7 +44,7 @@ public class CQL2HTMLVisitor extends SyntaxTreeVisitor<String> {
 		StringBuffer buffer = new StringBuffer();
 		
 		buffer.append("<" + htmlTag + " class=\"booleanOp\" data-valid=\"" + operator.isValid() + "\" " 
-				+ "data-depth=\"" + operator.getDepth() + "\">");
+				+ "data-depth=\"" + operator.getDepth() +  "\">");
 		buffer.append(operator);
 		buffer.append("</" + htmlTag + ">");
 		
