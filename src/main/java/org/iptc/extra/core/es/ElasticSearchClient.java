@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
+import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -237,6 +238,11 @@ public class ElasticSearchClient {
 			return indexResponse.status().getStatus();
 		}
 		
+		
+	}
+	public int deleteRule(String id, String indexName) throws IOException {	
+		DeleteResponse deleteResponse = client.prepareDelete(indexName, "queries", id).get();
+		return deleteResponse.status().getStatus();
 		
 	}
 	

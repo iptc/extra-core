@@ -133,7 +133,7 @@ public class EXTRA2ESHighlightVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		}
 		
 		if(TreeUtils.areSearchTermClauses(childrenClauses)) {
-			SearchTerms mergedSearchTerms = TreeUtils.mergeTerms(childrenClauses);
+			SearchTerms mergedSearchTerms = TreeUtils.mergeSearchTerms(childrenClauses);
 
 			if(mergedSearchTerms.isRegexp()) {
 				QueryStringQueryBuilder queryBuilder = queryStringQuery(mergedSearchTerms.getSearchTerm());
@@ -217,7 +217,7 @@ public class EXTRA2ESHighlightVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		else {
 			if(TreeUtils.areSearchTermClauses(childrenClauses)) {
 				
-				SearchTerms mergedSearchTerms = TreeUtils.mergeTerms(childrenClauses);
+				SearchTerms mergedSearchTerms = TreeUtils.mergeSearchTerms(childrenClauses);
 				if(schema != null && !schema.getTextualFieldNames().isEmpty()) {
 					Set<String> fields = schema.getTextualFieldNames();
 					MultiMatchQueryBuilder qb = multiMatchQuery(mergedSearchTerms.getSearchTerm(), fields.toArray(new String[fields.size()]));

@@ -24,6 +24,8 @@ import org.iptc.extra.core.cql.tree.visitor.SyntaxTreeVisitor;
 import org.iptc.extra.core.types.Rule;
 import org.iptc.extra.core.types.Schema;
 
+import edu.stanford.nlp.util.StringUtils;
+
 public class TreeUtils {
 	
 	public static boolean isTreeValid(Node root) {
@@ -257,20 +259,27 @@ public class TreeUtils {
 		return true;
 	}
 	
-	public static SearchTerms mergeTerms(List<Clause> clauses) {
-		SearchTerms searchTerms = new SearchTerms();
+	public static SearchTerms mergeSearchTerms(List<Clause> clauses) {
+		SearchTerms mergedSearchTerms = new SearchTerms();
 		
-		List<String> allTerms = new ArrayList<String>();
+		List<String> mergedTerms = new ArrayList<String>();
 		for(Clause clause : clauses) {
 			if(clause instanceof SearchClause) {
 				SearchClause searchClause = (SearchClause) clause;
-				List<String> terms = searchClause.getSearchTerms().getTerms();
-				allTerms.addAll(terms);
+				
+				SearchTerms searchTerms = searchClause.getSearchTerms();
+				if(searchTerms.isRegexp()) {
+					mergedTerms.add(searchTerms.getRegexp(false));
+				}
+				else {
+					List<String> terms = searchTerms.getTerms();
+					mergedTerms.add(StringUtils.join(terms, " "));
+				}
 			}
 		}
 		
-		searchTerms.setTerms(allTerms);
-		return searchTerms;
+		mergedSearchTerms.setTerms(mergedTerms);
+		return mergedSearchTerms;
 	}
 	
 	public static List<String> getIndices(List<SearchClause> searchClauses) {

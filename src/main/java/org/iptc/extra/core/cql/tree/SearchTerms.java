@@ -7,7 +7,9 @@ import org.apache.commons.lang3.StringUtils;
 
 public class SearchTerms extends Node {
 	
-	private static String[] regexpCharacters =  {".", "?", "+", "*", "|", "{", "}", "[", "]", "(", ")", "\"", "\\"};
+	private static String[] regexpCharacters =  {".", "+", "|", "{", "}", "[", "]", "(", ")", "\"", "\\"};
+	
+	private static String[] wildcards =  {"+", "*"};
 	
 	private List<String> terms = new ArrayList<String>();
 
@@ -36,6 +38,27 @@ public class SearchTerms extends Node {
 		return searchTerm;
 	}
 
+	public String getQueryString(String prefix) {
+		List<String> queryParts = new ArrayList<String>();
+		for(String term : terms) {
+			if(isRegexp(term)) {
+				queryParts.add(prefix + "(/" + term + "/)");
+			}
+			else {
+				if(term.matches(".+\\s+.+")) {
+					List<String> termParts = new ArrayList<String>();
+					for(String termPart : term.split("\\s+")) {
+						termParts.add("+" + termPart);
+					}
+					term = "(" + StringUtils.join(termParts, " ") +")";
+				}
+				queryParts.add(prefix + term);
+			}
+		}
+
+		return StringUtils.join(queryParts, " ");
+	}
+	
 	@Override
 	public boolean hasChildren() {
 		return false;
@@ -58,12 +81,40 @@ public class SearchTerms extends Node {
 		return terms.get(index);
 	}
 	
+	public boolean hasWildCards() {
+		for(String term : terms) {
+			boolean has = hasWildCards(term);
+			if(has) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private boolean hasWildCards(String term) {
+		for(String regexCharacter : wildcards) {
+			if(term.contains(regexCharacter)) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
 	public boolean isRegexp() {
 		for(String term : terms) {
-			for(String regexCharacter : regexpCharacters) {
-				if(term.contains(regexCharacter)) {
-					return true;
-				}
+			boolean isRegex = isRegexp(term);
+			if(isRegex) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private boolean isRegexp(String term) {
+		for(String regexCharacter : regexpCharacters) {
+			if(term.contains(regexCharacter)) {
+				return true;
 			}
 		}
 		return false;

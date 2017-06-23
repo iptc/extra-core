@@ -32,7 +32,7 @@ public class CQL2ESVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		
 		if(TreeUtils.areSearchTermClauses(childrenClauses)) {
 			
-			SearchTerms mergedSearchTerms = TreeUtils.mergeTerms(childrenClauses);
+			SearchTerms mergedSearchTerms = TreeUtils.mergeSearchTerms(childrenClauses);
 			
 			QueryStringQueryBuilder queryBuilder = queryStringQuery(mergedSearchTerms.getSearchTerm());
 			if(mergedSearchTerms.isRegexp()) {

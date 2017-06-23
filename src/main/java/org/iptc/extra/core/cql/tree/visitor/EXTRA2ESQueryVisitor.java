@@ -21,7 +21,6 @@ import org.elasticsearch.index.query.SpanNotQueryBuilder;
 import org.elasticsearch.index.query.SpanOrQueryBuilder;
 import org.elasticsearch.index.query.SpanQueryBuilder;
 import org.elasticsearch.index.query.SpanTermQueryBuilder;
-import org.elasticsearch.index.query.WildcardQueryBuilder;
 import org.elasticsearch.script.Script;
 import org.iptc.extra.core.cql.SyntaxTree;
 import org.iptc.extra.core.cql.tree.Clause;
@@ -157,31 +156,28 @@ public class EXTRA2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		}
 		
 		if(TreeUtils.areSearchTermClauses(childrenClauses)) {
-			SearchTerms mergedSearchTerms = TreeUtils.mergeTerms(childrenClauses);
-
-			if(mergedSearchTerms.isRegexp()) {
-				QueryStringQueryBuilder queryBuilder = queryStringQuery(mergedSearchTerms.getRegexp(false));
-				queryBuilder.defaultOperator(org.elasticsearch.index.query.Operator.AND);
-				queryBuilder.defaultField("text_content");
-				queryBuilder.analyzeWildcard(true);
-				
-				return queryBuilder;
+			// Αll the sub-statement are search clauses without specified index/relation
+			SearchTerms mergedSearchTerms = TreeUtils.mergeSearchTerms(childrenClauses);
+			String queryString = mergedSearchTerms.getQueryString("");
+			QueryStringQueryBuilder queryBuilder = queryStringQuery(queryString);
+			
+			if(schema != null && !schema.getTextualFieldNames().isEmpty() && indexSuffix.equals("")) {
+				for(String field : schema.getTextualFieldNames()) {
+					queryBuilder.field(field);
+				}
 			}
 			else {
-				if(schema == null) {
-					MatchQueryBuilder qb = matchQuery("text_content", mergedSearchTerms.getSearchTerm());
-					qb.operator(org.elasticsearch.index.query.Operator.AND);
-					
-					return qb;
-				}
-				else {
-					Set<String> fields = schema.getTextualFieldNames();
-					MultiMatchQueryBuilder qb = multiMatchQuery(mergedSearchTerms.getSearchTerm(), fields.toArray(new String[fields.size()]));
-				
-					qb.operator(org.elasticsearch.index.query.Operator.AND);
-					return qb;
-				}
+				queryBuilder.defaultField("text_content" + indexSuffix);
 			}
+			
+			queryBuilder.enablePositionIncrements(false);
+			queryBuilder.defaultOperator(org.elasticsearch.index.query.Operator.AND);
+			
+			if(mergedSearchTerms.hasWildCards()) {	
+				queryBuilder.analyzeWildcard(true);
+			}	
+			
+			return queryBuilder;
 		}
 		else {
 			BoolQueryBuilder booleanQb = boolQuery();
@@ -226,48 +222,53 @@ public class EXTRA2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		}
 		
 		if(spanEnabled) {
+			// Span flag is enabled. That means that a parent node of the rule is a proximity operator.
 			List<QueryBuilder> clausesQueries = getClausesQueries(childrenClauses);
 			if(clausesQueries.size() < 1) {
+				
 				return null;
 			}
 			
+			// Span query that matches the union of its clauses
 			SpanOrQueryBuilder spanOrQb = spanOrQuery((SpanQueryBuilder) clausesQueries.get(0));
 			for(int i = 1; i < clausesQueries.size(); i++) {
-				
 				spanOrQb.addClause((SpanQueryBuilder) clausesQueries.get(i));
 			}	
 			return spanOrQb;
 		}
 		else {
-			if(TreeUtils.areSearchTermClauses(childrenClauses)) {
+			if(TreeUtils.areSearchTermClauses(childrenClauses)) { 
+				// Αll the sub-statement are search clauses without specified index/relation
+				SearchTerms mergedSearchTerms = TreeUtils.mergeSearchTerms(childrenClauses);
+				String queryString = mergedSearchTerms.getQueryString("");
+				QueryStringQueryBuilder queryBuilder = queryStringQuery(queryString);
 				
-				SearchTerms mergedSearchTerms = TreeUtils.mergeTerms(childrenClauses);
 				if(schema != null && !schema.getTextualFieldNames().isEmpty() && indexSuffix.equals("")) {
-					Set<String> fields = schema.getTextualFieldNames();
-					MultiMatchQueryBuilder qb = multiMatchQuery(mergedSearchTerms.getSearchTerm(), fields.toArray(new String[fields.size()]));
-					
-					return qb;
+					for(String field : schema.getTextualFieldNames()) {
+						queryBuilder.field(field);
+					}
 				}
 				else {
-					
-					String queryString = mergedSearchTerms.isRegexp() ? mergedSearchTerms.getRegexp(false) : mergedSearchTerms.getSearchTerm();
-					QueryStringQueryBuilder queryBuilder = queryStringQuery(queryString);
 					queryBuilder.defaultField("text_content" + indexSuffix);
-					
-					if(mergedSearchTerms.isRegexp()) {	
-						queryBuilder.analyzeWildcard(true);
-					}
-			
-					return queryBuilder;
 				}
+				
+				queryBuilder.enablePositionIncrements(false);
+				
+				if(mergedSearchTerms.hasWildCards()) {	
+					queryBuilder.analyzeWildcard(true);
+				}	
+				
+				return queryBuilder;
 			}
 			else {
+				// Sub-statement are a mix of search clauses and other prefic clauses
 				BoolQueryBuilder booleanQb = boolQuery();
 				List<QueryBuilder> clausesQueries = getClausesQueries(childrenClauses);
 				if(clausesQueries.isEmpty()) {
 					return null;
 				}
 				for(QueryBuilder stqb : clausesQueries) {
+					// The sub-statement should match (or) the document
 					booleanQb.should(stqb);
 				}	
 				return booleanQb;
@@ -826,7 +827,6 @@ public class EXTRA2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 					
 					RegexpQueryBuilder regexpQb = regexpQuery(index, searchTerms.getRegexp(false));
 					return spanMultiTermQueryBuilder(regexpQb);
-					
 				}
 				String[] queryTerms = query.trim().split("\\s+");
 				if(queryTerms.length > 1) {
@@ -889,11 +889,11 @@ public class EXTRA2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		}
 		
 		if(relation.is("==")) {
-			if(relation.hasModifier("regexp")) {
+			if(relation.hasModifier("regexp") || searchTerms.isRegexp()) {
 				return regexpQuery("raw_" + index, searchTerms.getRegexp(false));
 			}
 			else {
-				return wildcardQuery(index, searchTerms.getRegexp(false));
+				return wildcardQuery(index, searchTerms.getSearchTerm());
 			}
 		}
 		
@@ -907,24 +907,37 @@ public class EXTRA2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 	@Override
 	public QueryBuilder visitSearchTerms(SearchTerms searchTerms) {
 		if(searchTerms.isRegexp()) {
-			WildcardQueryBuilder qb = wildcardQuery("text_content", searchTerms.getRegexp(false));
-			return qb;
+			return regexpQuery("text_content", searchTerms.getRegexp(false));
 		}
 		else {
-			QueryBuilder qb;
-			if(schema == null || !indexSuffix.equals("")) {
-				qb = matchQuery("text_content" + indexSuffix, searchTerms.getSearchTerm())
-						.operator(org.elasticsearch.index.query.Operator.AND);
+			if(searchTerms.hasWildCards()) {
+				QueryStringQueryBuilder queryBuilder = queryStringQuery(searchTerms.getQueryString("+")).analyzeWildcard(true);
+				queryBuilder.enablePositionIncrements(false);
+	
+				if(schema == null || !indexSuffix.equals("")) {
+					queryBuilder.field("text_content" + indexSuffix);
+				}
+				else {
+					for(String field : schema.getTextualFieldNames()) {
+						queryBuilder.field(field);
+					}
+				}
+				return queryBuilder;
 			}
 			else {
-				Set<String> fields = schema.getTextualFieldNames();
-				String[] fieldNames = fields.toArray(new String[fields.size()]);
+				QueryBuilder qb;
+				if(schema == null || !indexSuffix.equals("")) {
+					qb = matchQuery("text_content" + indexSuffix, searchTerms.getSearchTerm()).operator(org.elasticsearch.index.query.Operator.AND);
+				}
+				else {
+					Set<String> fields = schema.getTextualFieldNames();
+					String[] fieldNames = fields.toArray(new String[fields.size()]);
 				
-				qb = multiMatchQuery(searchTerms.getSearchTerm(), fieldNames)
-						.operator(org.elasticsearch.index.query.Operator.AND);
-			}
+					qb = multiMatchQuery(searchTerms.getSearchTerm(), fieldNames).operator(org.elasticsearch.index.query.Operator.AND);
+				}
 			
-			return qb;
+				return qb;
+			}
 		}
 		
 	}

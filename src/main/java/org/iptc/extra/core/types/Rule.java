@@ -1,5 +1,8 @@
 package org.iptc.extra.core.types;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.mongodb.morphia.annotations.Entity;
@@ -31,7 +34,17 @@ public class Rule {
 	protected String topicId;
 	
 	protected String topicName;
+
+	protected List<String> group = new ArrayList<String>();
 	
+	public List<String> getGroup() {
+		return group;
+	}
+
+	public void setGroup(List<String> group) {
+		this.group = group;
+	}
+
 	public Rule() {
 		
 	}
