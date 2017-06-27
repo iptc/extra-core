@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.iptc.extra.core.cql.tree.Clause;
+import org.iptc.extra.core.cql.tree.CommentClause;
 import org.iptc.extra.core.cql.tree.ErrorMessageNode;
 import org.iptc.extra.core.cql.tree.Index;
 import org.iptc.extra.core.cql.tree.Node;
@@ -115,6 +116,23 @@ public class ExtraValidator extends SyntaxTreeVisitor<List<ErrorMessageNode>> {
 			}
 		}
 		
+		if(extraOperator == ExtraOperator.MAXIMUM_OCCURRENCE || extraOperator == ExtraOperator.MINIMUM_OCCURRENCE) {
+			int clauses = 0;
+			for(Clause clause : prefixClause.getClauses()) {
+				if(!(clause instanceof CommentClause)) {
+					clauses++;
+				}
+			}
+			
+			if(clauses != prefixClause.getSearchClause().size()) {
+				ErrorMessageNode node = new ErrorMessageNode();
+				node.setErrorMessage(operator.toString() + " can be applied only to search clauses.");
+				
+				invalidNodes.add(node);
+				operator.setValid(false);
+			}
+		}
+	
 		if(extraOperator == null) {
 			ErrorMessageNode node = new ErrorMessageNode();
 			node.setErrorMessage(operator.toString() + " is not a valid EXTRA operator");
