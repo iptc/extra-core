@@ -465,6 +465,7 @@ public class EXTRA2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			QueryBuilder clauseQueryBuilder = visit(clause);
 			if(clauseQueryBuilder != null) {
 				booleanQb.must(clauseQueryBuilder);
+				break;
 			}
 		}
 		
@@ -556,6 +557,7 @@ public class EXTRA2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			QueryBuilder clauseQueryBuilder = visit(clause);
 			if(clauseQueryBuilder != null) {
 				booleanQb.must(clauseQueryBuilder);
+				break;
 			}
 		}
 		
@@ -616,11 +618,13 @@ public class EXTRA2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			BoolQueryBuilder booleanQb = boolQuery();
 			List<QueryBuilder> clausesQueries = getClausesQueries(prefixClause.getClauses());
 			if(clausesQueries.isEmpty()) {
+				// there must be at least one sub-statement
 				return null;
 			}	
 	
 			for(QueryBuilder clauseQb : clausesQueries) {
 				booleanQb.must(clauseQb);
+				break;
 			}	
 		
 			
