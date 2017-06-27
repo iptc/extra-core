@@ -48,10 +48,6 @@ public class EXTRA2ESHighlightVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 	
 	private Schema schema;
 	
-	public EXTRA2ESHighlightVisitor() {
-		
-	}
-	
 	public EXTRA2ESHighlightVisitor(Schema schema) {
 		this.schema = schema;
 	}
@@ -873,18 +869,11 @@ public class EXTRA2ESHighlightVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			return qb;
 		}
 		else {
-			QueryBuilder qb;
-			if(schema == null) {
-				qb = matchQuery("text_content", searchTerms.getSearchTerm())
-						.operator(org.elasticsearch.index.query.Operator.AND);
-			}
-			else {
-				Set<String> fields = schema.getTextualFieldNames();
-				String[] fieldNames = fields.toArray(new String[fields.size()]);
+			Set<String> fields = schema.getTextualFieldNames();
+			String[] fieldNames = fields.toArray(new String[fields.size()]);
 				
-				qb = multiMatchQuery(searchTerms.getSearchTerm(), fieldNames)
-						.operator(org.elasticsearch.index.query.Operator.AND);
-			}
+			MultiMatchQueryBuilder qb = multiMatchQuery(searchTerms.getSearchTerm(), fieldNames);
+			qb.operator(org.elasticsearch.index.query.Operator.AND);
 			
 			return qb;
 		}

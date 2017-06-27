@@ -185,6 +185,22 @@ public class ExtraValidator extends SyntaxTreeVisitor<List<ErrorMessageNode>> {
 			
 		}
 		
+		if(relation.hasModifier("regexp") && !searchTerms.isRegexp()) {
+			ErrorMessageNode node = new ErrorMessageNode();
+			node.setErrorMessage(relation + " has regexp modifier but no regexp has been detected in search term: " + searchTerms);
+		
+			invalidRelations.add(node);
+			relation.setValid(false);
+		}
+		
+		if(relation.hasModifier("masked") && !searchTerms.hasWildCards()) {
+			ErrorMessageNode node = new ErrorMessageNode();
+			node.setErrorMessage(relation + " has masked modifier but no wildcards have been detected in search term: " + searchTerms);
+		
+			invalidRelations.add(node);
+			relation.setValid(false);
+		}
+		
 		if(relation.hasModifier("stemming") && (relation.is(">") || relation.is(">=") || relation.is("<") || relation.is("<=") || relation.is("within") || relation.is(">"))) {
 			ErrorMessageNode node = new ErrorMessageNode();
 			node.setErrorMessage(relation.getRelation() + " relation cannot has stemming modifier.");
