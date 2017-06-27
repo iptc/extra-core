@@ -284,7 +284,7 @@ public class ElasticSearchClient {
 		docBuilder.endObject();
 		
 		QueryBuilder query;
-		if(group != null) {
+		if(group != null && !group.equals("")) {
 			query = boolQuery()
 					.must(new PercolateQueryBuilder("query", "doc", docBuilder.bytes()))
 					.must(termQuery("group", group));
