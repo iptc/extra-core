@@ -110,11 +110,15 @@ public class ElasticSearchClient {
 
 		List<Document> documents = new ArrayList<Document>();
 		SearchHits hits = response.getHits();
+		float maxScore = hits.getMaxScore() > 0 ? hits.getMaxScore() : 1;
 		for(SearchHit hit : hits) {
+			float hitScore = hit.getScore();
 			String source = hit.sourceAsString();
 			Map<String, HighlightField> highlights = hit.getHighlightFields();
 			Document doc = sourceToDocument(source, highlights, schema);
 			if(doc != null) {
+				String score = Float.toString(hitScore/maxScore);
+				doc.addField("score", score);
 				documents.add(doc);
 			}
 		}

@@ -1,10 +1,13 @@
 package org.iptc.extra.core.cql.tree.visitor;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MatchQueryBuilder;
@@ -124,28 +127,89 @@ public class EXTRA2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 	}
 	
 	private QueryBuilder occurenceToES(PrefixClause prefixClause) {
+		
+		BoolQueryBuilder booleanQb = boolQuery();
+		
+		QueryBuilder orQb = orToES(prefixClause);
+		if(orQb != null) {
+			booleanQb.must(orQb);
+		}
+		
 		Operator operator = prefixClause.getOperator();
 		Modifier modifier = operator.getModifier("count");
 		String comparitor = modifier.getComparitor();
 		String value = modifier.getValue();
 		
-		for(SearchClause searchClause : prefixClause.getSearchClause()) {
-			String field = (searchClause.getIndex() == null) ? "text_content" : searchClause.getIndex().getName();
-
-			SearchTerms searchTerms = searchClause.getSearchTerms();
-			for(String term : searchTerms.getTerms()) {
-				String code = "doc['" + field + "'].get('" + term + "', 0).tf() " + comparitor + " " + value;
-				Script script = new Script(code);
+		if(prefixClause.getSearchClause().size() == 1) {
 			
-				ScriptQueryBuilder query = scriptQuery(script);
-				return query;
+			SearchClause searchClause = prefixClause.getSearchClause().get(0);
+			String field = (searchClause.getIndex() == null) ? "text_content" : searchClause.getIndex().getName();
+			SearchTerms searchTerms = searchClause.getSearchTerms();
+			
+			String code = getScriptCode(field + "_tokens", comparitor, value, searchTerms.getTerms());
+			Script script = new Script(code);
+			ScriptQueryBuilder scriptQuery = scriptQuery(script);
+			booleanQb.must(scriptQuery);
+		}
+		else {
+			Map<String, List<String>> fieldTerms = new HashMap<String, List<String>>();
+			for(SearchClause searchClause : prefixClause.getSearchClause()) {
+				String field = (searchClause.getIndex() == null) ? "text_content" : searchClause.getIndex().getName();
+				SearchTerms searchTerms = searchClause.getSearchTerms();
+			
+				List<String> terms = fieldTerms.get(field + "_tokens");
+				if(terms == null) {
+					terms = new ArrayList<String>();
+					fieldTerms.put(field + "_tokens", terms);
+				}
+				terms.addAll(searchTerms.getTerms());
 			}
+		
+			String code = getScriptCode(comparitor, value, fieldTerms);
+			Script script = new Script(code);
+			ScriptQueryBuilder scriptQuery = scriptQuery(script);
+			booleanQb.must(scriptQuery);
 		}
 		
-		
-		
-		return null;
+		return booleanQb;
 	}
+	
+	private String getScriptCode(String comparitor, String count, Map<String, List<String>> fieldTerms) {
+		StringBuffer buffer = new StringBuffer();
+		buffer.append("int total = 0; ");
+		for(String field : fieldTerms.keySet()) {
+			List<String> terms = fieldTerms.get(field);
+			buffer.append("for (int i = 0; i < doc['" + field + "'].length; ++i) { ");
+			buffer.append("String t = doc['" + field + "'][i]; ");
+			buffer.append("String token = t.substring(0, t.indexOf('_')); ");
+			buffer.append("def terms = ['" + StringUtils.join(terms, "', '")+ "']; ");
+			buffer.append("if(terms.contains(token)) { ");
+			buffer.append("String f = t.substring(t.indexOf('_') + 1); ");
+			buffer.append("total += Integer.parseInt(f); ");
+			buffer.append("} ");
+			buffer.append("} ");
+		}
+		buffer.append("total " + comparitor + " " + count + ";");
+		return buffer.toString();
+	}
+	
+	private String getScriptCode(String field, String comparitor, String count, List<String> terms) {
+		
+		StringBuffer buffer = new StringBuffer();
+		buffer.append("int total = 0; ");
+		buffer.append("for (int i = 0; i < doc['" + field + "'].length; ++i) { ");
+		buffer.append("String t = doc['" + field + "'][i]; ");
+		buffer.append("String token = t.substring(0, t.indexOf('_')); ");
+		buffer.append("def terms = ['" + StringUtils.join(terms, "', '")+ "']; ");
+		buffer.append("if(terms.contains(token)) { ");
+		buffer.append("String f = t.substring(t.indexOf('_') + 1); ");
+		buffer.append("total += Integer.parseInt(f); ");
+		buffer.append("} ");
+		buffer.append("} ");
+		buffer.append("total " + comparitor + " " + count + ";");
+		return buffer.toString();
+	}
+	
 	
 	private QueryBuilder andToES(PrefixClause prefixClause) {
 		List<Clause> childrenClauses = prefixClause.getClauses();
