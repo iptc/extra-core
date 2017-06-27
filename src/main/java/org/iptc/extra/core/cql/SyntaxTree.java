@@ -5,6 +5,12 @@ import java.util.List;
 
 import org.iptc.extra.core.cql.tree.Node;
 
+/**
+ * @author manosetro
+ *
+ *	SyntaxTree class is the result of parsing of a given EXTRA rule. 
+ *	
+ */
 public class SyntaxTree {
 
 		private Node root;

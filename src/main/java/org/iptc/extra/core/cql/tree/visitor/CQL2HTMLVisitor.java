@@ -10,6 +10,11 @@ import org.iptc.extra.core.cql.tree.Relation;
 import org.iptc.extra.core.cql.tree.SearchClause;
 import org.iptc.extra.core.cql.tree.SearchTerms;
 
+/**
+ * @author manosetro - Manos Schinas
+ * 
+*	EXTRA2ESQueryVisitor performs a depth-first traversal of the syntax tree and generates an HTML representation. 
+*/
 public class CQL2HTMLVisitor extends SyntaxTreeVisitor<String> {
 	
 	private String htmlTag;

@@ -9,8 +9,17 @@ import org.iptc.extra.core.cql.tree.visitor.EXTRA2ESQueryVisitor;
 import org.iptc.extra.core.cql.tree.visitor.PretifyVisitor;
 import org.iptc.extra.core.types.Schema;
 
+/**
+ * @author manosetro - Manos Schinas
+ *	
+ * A wrapper class that exposes several transformation of EXTRA rules.
+ * 
+ */
 public class CQLMapper {
 
+	/*
+	 * Transform rule to elastic search query
+	 */
 	public QueryBuilder toElasticSearchQuery(Node root, Schema schema) {
 		if(root == null) {
 			return null;
@@ -22,6 +31,9 @@ public class CQLMapper {
 		return qb;
 	}
 
+	/*
+	 * Transform rule to elastic search highlight query
+	 */
 	public QueryBuilder toElasticSearchHighligh(Node root, Schema schema) {
 		if(root == null) {
 			return null;
@@ -33,6 +45,9 @@ public class CQLMapper {
 		return qb;
 	}
 	
+	/*
+	 * Transform rule to html
+	 */
 	public String toHtml(Node root, String htmlTag) {
 		CQL2HTMLVisitor visitor = new CQL2HTMLVisitor(htmlTag);	
 		String html = visitor.visit(root);
@@ -46,11 +61,12 @@ public class CQLMapper {
 		}
 	
 		PretifyVisitor visitor = new PretifyVisitor(newline, tab);
-		
 		return visitor.visit(root);
 	}
 	
-	
+	/*
+	 * Transform rule to jstree
+	 */
 	public String toJSTree(Node root) {
 		CQL2JSTreeVisitor visitor = new CQL2JSTreeVisitor();	
 		String tree = visitor.visit(root);

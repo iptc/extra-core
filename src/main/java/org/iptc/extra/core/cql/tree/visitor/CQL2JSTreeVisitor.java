@@ -11,6 +11,13 @@ import org.iptc.extra.core.cql.tree.Relation;
 import org.iptc.extra.core.cql.tree.SearchClause;
 import org.iptc.extra.core.cql.tree.SearchTerms;
 
+/**
+ * @author manosetro - Manos Schinas
+ * 
+ *	EXTRA2ESQueryVisitor performs a depth-first traversal of the syntax tree 
+ *	and generates an HTML representation that can be used by the jsTree plugin of jQuery (https://www.jstree.com/). 
+ */
+
 public class CQL2JSTreeVisitor extends SyntaxTreeVisitor<String> {
 		
 		@Override

@@ -2,6 +2,10 @@ package org.iptc.extra.core.cql;
 
 import org.antlr.v4.runtime.Token;
 
+/**
+ * @author manosetro
+ *
+ */
 public class SyntaxError {
 		
 		private int line;

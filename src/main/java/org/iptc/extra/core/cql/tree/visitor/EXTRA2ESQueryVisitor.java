@@ -42,6 +42,12 @@ import org.iptc.extra.core.types.Schema;
 
 import static org.elasticsearch.index.query.QueryBuilders.*;
 
+/**
+ * @author manosetro - Manos Schinas
+ * 
+ *	EXTRA2ESQueryVisitor performs a depth-first traversal of the syntax tree 
+ *	and generates the equivalent Elastic Search Query. 
+ */
 public class EXTRA2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 	
 	private String indexSuffix = "";
@@ -60,8 +66,9 @@ public class EXTRA2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 
 	@Override
 	public QueryBuilder visitPrefixClause(PrefixClause prefixClause) {
-		ExtraOperator extraOperator = prefixClause.getExtraOperator();
 		
+		ExtraOperator extraOperator = prefixClause.getExtraOperator();
+	
 		if(extraOperator == ExtraOperator.AND) {
 			return andToES(prefixClause);
 		}

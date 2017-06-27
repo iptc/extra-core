@@ -8,6 +8,15 @@ import org.iptc.extra.core.cql.tree.PrefixClause;
 import org.iptc.extra.core.cql.tree.ReferenceClause;
 import org.iptc.extra.core.cql.tree.SearchClause;
 
+/**
+ * @author manosetro - Manos Schinas
+ *
+ *	The class extends SyntaxTreeVisitor class to create a pretified version of the rule, expressed as a sytnax tree.
+ *	Namely, this visitor visits each node of the syntax tree in a depth first fashion, 
+ *	concatenates the string representation of each node into a single string, 
+ *	while adds newlines and tab characters to pretify it. 
+ *
+ */
 public class PretifyVisitor extends SyntaxTreeVisitor<String> {
 	
 	private String newline;

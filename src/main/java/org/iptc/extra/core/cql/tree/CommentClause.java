@@ -1,5 +1,12 @@
 package org.iptc.extra.core.cql.tree;
 
+/**
+ * @author manosetro - Manos Schinas
+ *
+ *	CommentClause corresponds to in-line comments in the rule.
+ *	Every string between //...// is considered as a comment and mapped to a CommentClause object in the syntax tree. 
+ *	
+ */
 public class CommentClause extends Clause {
 
 	public CommentClause() {

@@ -33,6 +33,14 @@ import org.iptc.extra.core.cql.tree.SearchTerms;
 import org.iptc.extra.core.cql.tree.extra.ExtraOperator;
 import org.iptc.extra.core.cql.tree.extra.ExtraRelation;
 
+/**
+ * @author manosetro - Manos Schinas
+ * 
+ * EXTRA language parser.
+ * 
+ * That class is used to parse a rule expressed as a string and to generate the corresponding syntax tree. 
+ * 
+ */
 public class CQLExtraParser {
 	
 	private static Node getRootNode(ParseTree tree) {

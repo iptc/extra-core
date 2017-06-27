@@ -11,6 +11,13 @@ import org.iptc.extra.core.cql.tree.Relation;
 import org.iptc.extra.core.cql.tree.SearchClause;
 import org.iptc.extra.core.cql.tree.SearchTerms;
 
+/**
+ * @author manosetro - Manos Schinas
+ *
+ *	This class traverses the given syntax tree in a depth first fashion without performing any action. 
+ *	That class should be extended by every visitor class. 
+ *
+ */
 public class SyntaxTreeVisitor<T> {
 
 	public T visit(Node node) {
