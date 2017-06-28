@@ -286,6 +286,7 @@ public class CQLExtraParser {
 			syntaxTree.setRootNode(root);
 		}
 		catch(Exception e) {
+			e.printStackTrace();
 			System.out.println(e.getMessage());
 		}
 		

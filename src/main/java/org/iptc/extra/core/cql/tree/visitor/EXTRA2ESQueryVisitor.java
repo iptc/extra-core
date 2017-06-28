@@ -161,15 +161,29 @@ public class EXTRA2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		else {
 			Map<String, List<String>> fieldTerms = new HashMap<String, List<String>>();
 			for(SearchClause searchClause : prefixClause.getSearchClause()) {
+				Relation relation = searchClause.getRelation();
 				String field = (searchClause.getIndex() == null) ? "text_content" : searchClause.getIndex().getName();
 				SearchTerms searchTerms = searchClause.getSearchTerms();
 			
-				List<String> terms = fieldTerms.get(field + "_tokens");
+				String fieldPrefix = "";
+				if(relation != null && relation.hasModifier("stemming")) {
+					fieldPrefix = "stemmed_";
+				}
+				
+				String tokensField = fieldPrefix + field + "_tokens";
+				
+				List<String> terms = fieldTerms.get(tokensField);
 				if(terms == null) {
 					terms = new ArrayList<String>();
 					fieldTerms.put(field + "_tokens", terms);
 				}
-				terms.addAll(searchTerms.getTerms());
+				
+				if(relation == null || relation.is("=") || relation.is("any")) {
+					terms.addAll(searchTerms.getTerms());
+				}
+				else if(relation.is("adj")) {
+					terms.add(searchTerms.getSearchTerm().toLowerCase());
+				}
 			}
 		
 			String code = getScriptCode(comparitor, value, fieldTerms);
