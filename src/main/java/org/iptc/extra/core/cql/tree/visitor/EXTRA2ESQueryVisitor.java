@@ -175,7 +175,7 @@ public class EXTRA2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 				List<String> terms = fieldTerms.get(tokensField);
 				if(terms == null) {
 					terms = new ArrayList<String>();
-					fieldTerms.put(field + "_tokens", terms);
+					fieldTerms.put(tokensField, terms);
 				}
 				
 				if(relation == null || relation.is("=") || relation.is("any")) {
@@ -190,6 +190,7 @@ public class EXTRA2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			Script script = new Script(code);
 			ScriptQueryBuilder scriptQuery = scriptQuery(script);
 			booleanQb.must(scriptQuery);
+			
 		}
 		
 		return booleanQb;
