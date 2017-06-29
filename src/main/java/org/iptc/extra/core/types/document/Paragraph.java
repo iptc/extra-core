@@ -3,6 +3,8 @@ package org.iptc.extra.core.types.document;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.iptc.extra.core.utils.TextUtils;
+
 public class Paragraph {
 
 	private String paragraph;
@@ -10,12 +12,7 @@ public class Paragraph {
 
 	public Paragraph(String paragraph) {
 		this.paragraph = paragraph;
-		String[] splits = paragraph.split("\\.|\\?|\\!");
-		for(String split : splits) {
-			split = split.trim();
-			Sentence sentence = new Sentence(split);
-			sentences.add(sentence);
-		}
+		sentences = TextUtils.getSentences(paragraph);
 	}
 	
 	public Sentence getSentence(int index) {

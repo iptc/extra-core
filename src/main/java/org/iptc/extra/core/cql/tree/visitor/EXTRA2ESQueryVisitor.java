@@ -201,6 +201,9 @@ public class EXTRA2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		buffer.append("int total = 0; ");
 		for(String field : fieldTerms.keySet()) {
 			List<String> terms = fieldTerms.get(field);
+			if(terms.isEmpty()) {
+				continue;
+			}
 			buffer.append("for (int i = 0; i < doc['" + field + "'].length; ++i) { ");
 			buffer.append("String t = doc['" + field + "'][i]; ");
 			buffer.append("String token = t.substring(0, t.indexOf('_')); ");

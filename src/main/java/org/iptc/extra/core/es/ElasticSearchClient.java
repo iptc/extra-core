@@ -220,16 +220,20 @@ public class ElasticSearchClient {
 		            .endObject())
 					.get();
 			
-			Script script = new Script("ctx._source.group.add(\"" + groupId + "\");");
-			updateResponse = client.prepareUpdate(indexName, "queries", id)
-						.setScript(script)
-						.get();
-			 
+			if(groupId != null && !groupId.equals("")) {
+				Map<String, Object> source = response.getSourceAsMap();
+				List<?> groups = (List<?>) source.get("group");
+				if(groups == null || !groups.contains(groupId)) {
+					Script script = new Script("if(!ctx._source.containsKey(\"group\")) { ctx._source.group = []; } ctx._source.group.add(\"" + groupId + "\");");
+					updateResponse = client.prepareUpdate(indexName, "queries", id).setScript(script).get();
+				}	
+			}
+
 			return updateResponse.status().getStatus();
 		}
 		else {
 			XContentBuilder query = XContentFactory.jsonBuilder().startObject().field("query", qb);
-			if(groupId != null) {
+			if(groupId != null && !groupId.equals("")) {
 				query.array("group", groupId);
 			}
 			query.endObject();
@@ -254,34 +258,9 @@ public class ElasticSearchClient {
 		return findRules(document, indexName, null, page, nPerPage);
 	}
 	
-	public ElasticSearchResponse<String> findRules(Document document, String indexName, String group, int page, int nPerPage) throws IOException {
+	public ElasticSearchResponse<String> findRules(Document document, String index, String group, int page, int nPerPage) throws IOException {
 		
-		XContentBuilder docBuilder = XContentFactory.jsonBuilder().startObject();
-		for(String fieldName : document.keySet()) {
-			DocumentField field = document.get(fieldName);
-			if(field instanceof StructuredTextField) {
-				StructuredTextField structuredField = (StructuredTextField) field;
-				docBuilder.field(fieldName, structuredField.getValue());
-				
-				docBuilder.startArray(fieldName + "_paragraphs");
-				for(Paragraph paragraph : structuredField.getParagraphs()) {
-					docBuilder.field("paragraph", paragraph.getParagraph());
-				}
-				docBuilder.endArray();
-				
-				docBuilder.startArray(fieldName + "_sentences");
-				for(Sentence sentence : structuredField.getSentences()) {
-					docBuilder.field("sentence", sentence.getText());
-				}
-				docBuilder.endArray();
-				
-			}
-			else if(field instanceof TextField) {
-				docBuilder.field(fieldName, ((TextField) field).getValue());
-			}
-			
-		}
-		docBuilder.endObject();
+		XContentBuilder docBuilder = buildPercolateQuery(document);
 		
 		QueryBuilder query;
 		if(group != null && !group.equals("")) {
@@ -296,24 +275,62 @@ public class ElasticSearchClient {
 		Integer from = (page - 1) * nPerPage;
 		Integer size = nPerPage;
 		
-		SearchResponse response = client.prepareSearch(indexName)
+		ElasticSearchResponse<String> resp = new ElasticSearchResponse<String>();
+		try {
+			SearchResponse response = client.prepareSearch(index)
 		        .setQuery(query)
 		        .setFrom(from)
 		        .setSize(size)
 		        .get();
 		
-		List<String> ruleIds = new ArrayList<String>();
-		for(SearchHit hit : response.getHits()) {
-			ruleIds.add(hit.getId());
+			List<String> ruleIds = new ArrayList<String>();
+			for(SearchHit hit : response.getHits()) {
+				ruleIds.add(hit.getId());
+			}
+			resp.setResults(ruleIds);
+			resp.setFound(response.getHits().getTotalHits());
 		}
-		
-		ElasticSearchResponse<String> resp = new ElasticSearchResponse<String>();
-		resp.setResults(ruleIds);
-		resp.setFound(response.getHits().getTotalHits());
+		catch(Exception e) {
+			
+		}
 		
 		return resp;
 	}
 		
+	private XContentBuilder buildPercolateQuery(Document document) throws IOException {
+		XContentBuilder docBuilder = XContentFactory.jsonBuilder().startObject();
+		for(String fieldName : document.keySet()) {
+			DocumentField field = document.get(fieldName);
+			if(field instanceof StructuredTextField) {
+				StructuredTextField structuredField = (StructuredTextField) field;
+				docBuilder.field(fieldName, structuredField.getValue());
+				
+				docBuilder.startArray(fieldName + "_paragraphs");
+				for(Paragraph paragraph : structuredField.getParagraphs()) {
+					docBuilder.startObject()
+						.field("paragraph", paragraph.getParagraph())
+						.endObject();
+				}
+				docBuilder.endArray();
+				
+				docBuilder.startArray(fieldName + "_sentences");
+				for(Sentence sentence : structuredField.getSentences()) {
+					docBuilder.startObject()
+						.field("sentence", sentence.getText())
+						.endObject();
+				}
+				docBuilder.endArray();
+				
+			}
+			else if(field instanceof TextField) {
+				docBuilder.field(fieldName, ((TextField) field).getValue());
+			}
+		}
+		docBuilder.endObject();
+		
+		return docBuilder;
+	}
+	
 	private boolean createSchemaPercolateMapping(Schema schema) throws IOException {
 		
 		IndicesAdminClient indicesClient = client.admin().indices();
@@ -369,6 +386,9 @@ public class ElasticSearchClient {
 				addFieldMapping(mappingBuilder, "literal_" + fieldName, lang + "_literal_analyzer");
 				addFieldMapping(mappingBuilder, "stemmed_" + fieldName, lang + "_stemming_analyzer");
 				addFieldMapping(mappingBuilder, "case_sensitive_" + fieldName, lang + "_case_sensitive_analyzer");
+				addKeywordFieldMapping(mappingBuilder, "raw_" + fieldName);
+				addKeywordFieldMapping(mappingBuilder, fieldName + "_tokens");
+				addKeywordFieldMapping(mappingBuilder, "stemmed_" + fieldName + "_tokens");
 				
 				if(field.hasSentences) {
 					addNestedFieldMapping(mappingBuilder, fieldName + "_sentences", "sentence", lang + "_non_stemming_analyzer");
@@ -402,6 +422,12 @@ public class ElasticSearchClient {
 		return mappingResponse.isAcknowledged();
 	}
 
+	private void addKeywordFieldMapping(XContentBuilder mappingBuilder, String fieldName) throws IOException {
+		mappingBuilder.startObject(fieldName);
+		mappingBuilder.field("type", "keyword");
+		mappingBuilder.endObject();
+	}
+	
 	private void addFieldMapping(XContentBuilder mappingBuilder, String fieldName, String analyzer) throws IOException {
 		mappingBuilder.startObject(fieldName);
 		mappingBuilder.field("type", "text");
