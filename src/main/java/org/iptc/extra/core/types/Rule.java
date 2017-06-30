@@ -25,6 +25,8 @@ public class Rule {
 	
 	protected long updatedAt;
 	
+	protected long submittedAt = 0;
+	
 	protected String uid;
 	
 	protected String parentRule;
@@ -37,13 +39,7 @@ public class Rule {
 
 	protected List<String> group = new ArrayList<String>();
 	
-	public List<String> getGroup() {
-		return group;
-	}
-
-	public void setGroup(List<String> group) {
-		this.group = group;
-	}
+	protected List<String> schemas = new ArrayList<String>();
 
 	public Rule() {
 		
@@ -106,6 +102,14 @@ public class Rule {
 		this.updatedAt = updatedAt;
 	}
 	
+	public long getSubmittedAt() {
+		return submittedAt;
+	}
+
+	public void setSubmittedAt(long submittedAt) {
+		this.submittedAt = submittedAt;
+	}
+	
 	public String getUid() {
 		return uid;
 	}
@@ -146,8 +150,28 @@ public class Rule {
 		this.topicName = topicName;
 	}
 	
-	public static void main(String...args) {
-		Rule r = new Rule("1", "test");
-		System.out.println(r);
+	public List<String> getGroup() {
+		if(group == null) {
+			return new ArrayList<String>();
+		}
+		
+		return group;
 	}
+
+	public void setGroup(List<String> group) {
+		this.group = group;
+	}
+	
+	public List<String> getSchemas() {
+		if(schemas == null) {
+			return new ArrayList<String>();
+		}
+		
+		return schemas;
+	}
+
+	public void setSchemas(List<String> schemas) {
+		this.schemas = schemas;
+	}
+
 }

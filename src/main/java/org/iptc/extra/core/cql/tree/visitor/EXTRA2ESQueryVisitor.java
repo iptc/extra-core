@@ -810,6 +810,12 @@ public class EXTRA2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 				index = "literal_" + index;
 			}
 			
+			if(searchTerms.hasWildCards() && !isRegex) {
+				return queryStringQuery(query)
+						.field(index)
+						.analyzeWildcard(true);
+			}
+			
 			return matchQuery(index, query);
 			
 		}
@@ -831,7 +837,6 @@ public class EXTRA2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			queryBuilder.operator(org.elasticsearch.index.query.Operator.AND);	
 				
 			return queryBuilder;
-				
 		}
 		else if (relation.is("adj")) {
 			if(relation.hasModifier("stemming")) {
@@ -842,6 +847,13 @@ public class EXTRA2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			}
 			else if(relation.hasModifier("literal")) {
 				index = "literal_" + index;
+			}
+			
+			if(searchTerms.hasWildCards() && !isRegex) {
+				return queryStringQuery(query)
+						.defaultOperator(org.elasticsearch.index.query.Operator.AND)
+						.field(index)
+						.analyzeWildcard(true);
 			}
 			
 			return matchPhraseQuery(index, query);
