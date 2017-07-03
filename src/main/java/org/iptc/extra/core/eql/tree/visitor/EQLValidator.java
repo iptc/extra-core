@@ -19,16 +19,16 @@ import org.iptc.extra.core.eql.tree.utils.TreeUtils;
 import org.iptc.extra.core.types.Schema;
 import org.iptc.extra.core.types.Schema.Field;
 
-public class ExtraValidator extends SyntaxTreeVisitor<List<ErrorMessageNode>> {
+public class EQLValidator extends SyntaxTreeVisitor<List<ErrorMessageNode>> {
 	
 	private Schema schema;
 
-	public ExtraValidator(Schema schema) {
+	public EQLValidator(Schema schema) {
 		this.schema = schema;
 	}
 
 	public static List<ErrorMessageNode> validate(Node root, Schema schema) {
-		ExtraValidator validator = new ExtraValidator(schema);
+		EQLValidator validator = new EQLValidator(schema);
 	
 		List<ErrorMessageNode> invalidNodes = validator.visit(root);
 		return invalidNodes;

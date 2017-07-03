@@ -15,11 +15,11 @@ import org.iptc.extra.core.eql.tree.SearchTerms;
  * 
 *	EXTRA2ESQueryVisitor performs a depth-first traversal of the syntax tree and generates an HTML representation. 
 */
-public class CQL2HTMLVisitor extends SyntaxTreeVisitor<String> {
+public class EQL2HTMLVisitor extends SyntaxTreeVisitor<String> {
 	
 	private String htmlTag;
 
-	public CQL2HTMLVisitor(String htmlTag) {
+	public EQL2HTMLVisitor(String htmlTag) {
 		this.htmlTag = htmlTag;
 	}
 	

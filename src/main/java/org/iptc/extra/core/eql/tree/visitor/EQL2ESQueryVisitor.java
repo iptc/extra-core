@@ -48,7 +48,7 @@ import static org.elasticsearch.index.query.QueryBuilders.*;
  *	EXTRA2ESQueryVisitor performs a depth-first traversal of the syntax tree 
  *	and generates the equivalent Elastic Search Query. 
  */
-public class EXTRA2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
+public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 	
 	private String indexSuffix = "";
 	
@@ -56,11 +56,11 @@ public class EXTRA2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 	
 	private Schema schema;
 	
-	public EXTRA2ESQueryVisitor() {
+	public EQL2ESQueryVisitor() {
 		
 	}
 	
-	public EXTRA2ESQueryVisitor(Schema schema) {
+	public EQL2ESQueryVisitor(Schema schema) {
 		this.schema = schema;
 	}
 

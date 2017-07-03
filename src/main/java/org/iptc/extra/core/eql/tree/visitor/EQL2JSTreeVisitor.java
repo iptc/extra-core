@@ -18,7 +18,7 @@ import org.iptc.extra.core.eql.tree.SearchTerms;
  *	and generates an HTML representation that can be used by the jsTree plugin of jQuery (https://www.jstree.com/). 
  */
 
-public class CQL2JSTreeVisitor extends SyntaxTreeVisitor<String> {
+public class EQL2JSTreeVisitor extends SyntaxTreeVisitor<String> {
 		
 		@Override
 		public String visitPrefixClause(PrefixClause prefixClause) {

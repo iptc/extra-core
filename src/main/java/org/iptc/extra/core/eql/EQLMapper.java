@@ -2,10 +2,10 @@ package org.iptc.extra.core.eql;
 
 import org.elasticsearch.index.query.QueryBuilder;
 import org.iptc.extra.core.eql.tree.Node;
-import org.iptc.extra.core.eql.tree.visitor.CQL2HTMLVisitor;
-import org.iptc.extra.core.eql.tree.visitor.CQL2JSTreeVisitor;
-import org.iptc.extra.core.eql.tree.visitor.EXTRA2ESHighlightVisitor;
-import org.iptc.extra.core.eql.tree.visitor.EXTRA2ESQueryVisitor;
+import org.iptc.extra.core.eql.tree.visitor.EQL2ESHighlightVisitor;
+import org.iptc.extra.core.eql.tree.visitor.EQL2ESQueryVisitor;
+import org.iptc.extra.core.eql.tree.visitor.EQL2HTMLVisitor;
+import org.iptc.extra.core.eql.tree.visitor.EQL2JSTreeVisitor;
 import org.iptc.extra.core.eql.tree.visitor.PretifyVisitor;
 import org.iptc.extra.core.types.Schema;
 
@@ -25,7 +25,7 @@ public class EQLMapper {
 			return null;
 		}	
 
-		EXTRA2ESQueryVisitor visitor = new EXTRA2ESQueryVisitor(schema);
+		EQL2ESQueryVisitor visitor = new EQL2ESQueryVisitor(schema);
 		QueryBuilder qb = visitor.visit(root);
 		
 		return qb;
@@ -40,7 +40,7 @@ public class EQLMapper {
 			return null;
 		}	
 
-		EXTRA2ESHighlightVisitor visitor = new EXTRA2ESHighlightVisitor(schema);
+		EQL2ESHighlightVisitor visitor = new EQL2ESHighlightVisitor(schema);
 		QueryBuilder qb = visitor.visit(root);
 		
 		return qb;
@@ -50,7 +50,7 @@ public class EQLMapper {
 	 * Transforms a rule to html
 	 */
 	public String toHtml(Node root, String htmlTag) {
-		CQL2HTMLVisitor visitor = new CQL2HTMLVisitor(htmlTag);	
+		EQL2HTMLVisitor visitor = new EQL2HTMLVisitor(htmlTag);	
 		String html = visitor.visit(root);
 		
 		return html;
@@ -69,7 +69,7 @@ public class EQLMapper {
 	 * Transforms a rule to jstree
 	 */
 	public String toJSTree(Node root) {
-		CQL2JSTreeVisitor visitor = new CQL2JSTreeVisitor();	
+		EQL2JSTreeVisitor visitor = new EQL2JSTreeVisitor();	
 		String tree = visitor.visit(root);
 		
 		return "<ul><br/>" + tree + "</ul>";

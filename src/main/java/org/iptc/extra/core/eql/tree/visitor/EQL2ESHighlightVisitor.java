@@ -27,11 +27,11 @@ import org.iptc.extra.core.types.Schema;
 
 import static org.elasticsearch.index.query.QueryBuilders.*;
 
-public class EXTRA2ESHighlightVisitor extends SyntaxTreeVisitor<QueryBuilder> {
+public class EQL2ESHighlightVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 	
 	private Schema schema;
 	
-	public EXTRA2ESHighlightVisitor(Schema schema) {
+	public EQL2ESHighlightVisitor(Schema schema) {
 		this.schema = schema;
 	}
 
