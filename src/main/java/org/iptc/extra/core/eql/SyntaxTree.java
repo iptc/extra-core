@@ -3,7 +3,7 @@ package org.iptc.extra.core.eql;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.iptc.extra.core.eql.tree.Node;
+import org.iptc.extra.core.eql.tree.nodes.Node;
 
 /**
  * @author manosetro

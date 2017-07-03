@@ -1,10 +1,10 @@
 package org.iptc.extra.core.eql;
 
 import org.elasticsearch.index.query.QueryBuilder;
-import org.iptc.extra.core.eql.tree.Node;
-import org.iptc.extra.core.eql.tree.visitor.EQL2ESHighlightVisitor;
+import org.iptc.extra.core.eql.tree.nodes.Node;
 import org.iptc.extra.core.eql.tree.visitor.EQL2ESQueryVisitor;
 import org.iptc.extra.core.eql.tree.visitor.EQL2HTMLVisitor;
+import org.iptc.extra.core.eql.tree.visitor.EQL2HighlightVisitor;
 import org.iptc.extra.core.eql.tree.visitor.EQL2JSTreeVisitor;
 import org.iptc.extra.core.eql.tree.visitor.PretifyVisitor;
 import org.iptc.extra.core.types.Schema;
@@ -40,7 +40,7 @@ public class EQLMapper {
 			return null;
 		}	
 
-		EQL2ESHighlightVisitor visitor = new EQL2ESHighlightVisitor(schema);
+		EQL2HighlightVisitor visitor = new EQL2HighlightVisitor(schema);
 		QueryBuilder qb = visitor.visit(root);
 		
 		return qb;

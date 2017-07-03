@@ -1,12 +1,12 @@
 package org.iptc.extra.core.eql.tree.visitor;
 
 import org.apache.commons.lang3.StringUtils;
-import org.iptc.extra.core.eql.tree.Clause;
-import org.iptc.extra.core.eql.tree.CommentClause;
-import org.iptc.extra.core.eql.tree.Operator;
-import org.iptc.extra.core.eql.tree.PrefixClause;
-import org.iptc.extra.core.eql.tree.ReferenceClause;
-import org.iptc.extra.core.eql.tree.SearchClause;
+import org.iptc.extra.core.eql.tree.nodes.Clause;
+import org.iptc.extra.core.eql.tree.nodes.CommentClause;
+import org.iptc.extra.core.eql.tree.nodes.Operator;
+import org.iptc.extra.core.eql.tree.nodes.PrefixClause;
+import org.iptc.extra.core.eql.tree.nodes.ReferenceClause;
+import org.iptc.extra.core.eql.tree.nodes.SearchClause;
 
 /**
  * @author manosetro - Manos Schinas
@@ -60,7 +60,7 @@ public class PretifyVisitor extends SyntaxTreeVisitor<String> {
 			buffer.append(searchClause.getRelation());
 			buffer.append(" ");
 		}
-		buffer.append(searchClause.getSearchTerms());
+		buffer.append(searchClause.getSearchTerm());
 		buffer.append(")");
 		buffer.append(newline);
 			

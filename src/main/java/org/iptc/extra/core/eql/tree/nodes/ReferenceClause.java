@@ -1,4 +1,4 @@
-package org.iptc.extra.core.eql.tree;
+package org.iptc.extra.core.eql.tree.nodes;
 
 import org.iptc.extra.core.eql.SyntaxTree;
 import org.iptc.extra.core.types.Rule;

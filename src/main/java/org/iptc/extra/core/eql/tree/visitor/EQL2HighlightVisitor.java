@@ -13,37 +13,36 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.iptc.extra.core.eql.SyntaxTree;
-import org.iptc.extra.core.eql.tree.Clause;
-import org.iptc.extra.core.eql.tree.CommentClause;
-import org.iptc.extra.core.eql.tree.Index;
-import org.iptc.extra.core.eql.tree.PrefixClause;
-import org.iptc.extra.core.eql.tree.ReferenceClause;
-import org.iptc.extra.core.eql.tree.Relation;
-import org.iptc.extra.core.eql.tree.SearchClause;
-import org.iptc.extra.core.eql.tree.SearchTerms;
-import org.iptc.extra.core.eql.tree.extra.ExtraOperator;
-import org.iptc.extra.core.eql.tree.utils.TreeUtils;
+import org.iptc.extra.core.eql.tree.extra.EQLOperator;
+import org.iptc.extra.core.eql.tree.nodes.Clause;
+import org.iptc.extra.core.eql.tree.nodes.CommentClause;
+import org.iptc.extra.core.eql.tree.nodes.Index;
+import org.iptc.extra.core.eql.tree.nodes.PrefixClause;
+import org.iptc.extra.core.eql.tree.nodes.ReferenceClause;
+import org.iptc.extra.core.eql.tree.nodes.Relation;
+import org.iptc.extra.core.eql.tree.nodes.SearchClause;
+import org.iptc.extra.core.eql.tree.nodes.SearchTerm;
 import org.iptc.extra.core.types.Schema;
 
 import static org.elasticsearch.index.query.QueryBuilders.*;
 
-public class EQL2ESHighlightVisitor extends SyntaxTreeVisitor<QueryBuilder> {
+public class EQL2HighlightVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 	
 	private Schema schema;
 	
-	public EQL2ESHighlightVisitor(Schema schema) {
+	public EQL2HighlightVisitor(Schema schema) {
 		this.schema = schema;
 	}
 
 	@Override
 	public QueryBuilder visitPrefixClause(PrefixClause prefixClause) {
-		ExtraOperator extraOperator = prefixClause.getExtraOperator();
+		EQLOperator extraOperator = prefixClause.getEQLOperator();
 		
 		if(extraOperator == null) {
 			return null;
 		}
 		
-		if(extraOperator == ExtraOperator.AND) {
+		if(extraOperator == EQLOperator.AND) {
 			return andToES(prefixClause);
 		}
 		
@@ -58,58 +57,35 @@ public class EQL2ESHighlightVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			return visit(childrenClauses.get(0));
 		}
 		
-		if(TreeUtils.areSearchTermClauses(childrenClauses)) {
-			SearchTerms mergedSearchTerms = TreeUtils.mergeSearchTerms(childrenClauses);
-			if(mergedSearchTerms.isRegexp()) {
-				QueryStringQueryBuilder queryBuilder = queryStringQuery(mergedSearchTerms.getSearchTerm());
-				queryBuilder.defaultOperator(org.elasticsearch.index.query.Operator.AND);
-				queryBuilder.analyzeWildcard(true);
-				
-				for(String field : schema.getTextualFieldNames()) {
-					queryBuilder.field(field);
-				}
-				
-				return queryBuilder;
+		BoolQueryBuilder booleanQb = boolQuery();
+			
+		List<QueryBuilder> mustClauses = new ArrayList<QueryBuilder>();
+		List<QueryBuilder> mustNotClauses = new ArrayList<QueryBuilder>();
+		for(Clause clause : childrenClauses) {
+			if(EQLOperator.isEQLOperatorClause(clause, EQLOperator.NOT)) {
+				mustNotClauses.addAll(getChildrenClausesQueries((PrefixClause) clause));
 			}
 			else {
-				Set<String> fields = schema.getTextualFieldNames();
-				MultiMatchQueryBuilder qb = multiMatchQuery(mergedSearchTerms.getSearchTerm(), fields.toArray(new String[fields.size()]));
-				
-				qb.operator(org.elasticsearch.index.query.Operator.AND);
-				return qb;
+				QueryBuilder queryBuilder = visit(clause);
+				if(queryBuilder != null) {
+					mustClauses.add(queryBuilder);
+				}
 			}
 		}
-		else {
-			BoolQueryBuilder booleanQb = boolQuery();
-			
-			List<QueryBuilder> mustClauses = new ArrayList<QueryBuilder>();
-			List<QueryBuilder> mustNotClauses = new ArrayList<QueryBuilder>();
-			for(Clause clause : childrenClauses) {
-				if(ExtraOperator.isExtraOperatorClause(clause, ExtraOperator.NOT)) {
-					mustNotClauses.addAll(getChildrenClausesQueries((PrefixClause) clause));
-				}
-				else {
-					QueryBuilder queryBuilder = visit(clause);
-					if(queryBuilder != null) {
-						mustClauses.add(queryBuilder);
-					}
-				}
-			}
 
-			if(mustClauses.isEmpty()) {
-				return null;
-			}	
+		if(mustClauses.isEmpty()) {
+			return null;
+		}	
 		
-			for(QueryBuilder stqb : mustClauses) {
-				booleanQb.must(stqb);
-			}	
+		for(QueryBuilder stqb : mustClauses) {
+			booleanQb.must(stqb);
+		}	
 			
-			for(QueryBuilder stqb : mustNotClauses) {
-				booleanQb.mustNot(stqb);
-			}	
+		for(QueryBuilder stqb : mustNotClauses) {
+			booleanQb.mustNot(stqb);
+		}	
 			
-			return booleanQb;
-		}
+		return booleanQb;
 	}
 	
 	private QueryBuilder orToES(PrefixClause prefixClause) {
@@ -120,32 +96,18 @@ public class EQL2ESHighlightVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		if(childrenClauses.size() == 1) {
 			return visit(childrenClauses.get(0));
 		}
-		
-		if(TreeUtils.areSearchTermClauses(childrenClauses)) {	
-			SearchTerms mergedSearchTerms = TreeUtils.mergeSearchTerms(childrenClauses);
 
-			QueryStringQueryBuilder queryBuilder = queryStringQuery(mergedSearchTerms.getSearchTerm());
-			for(String field : schema.getTextualFieldNames()) {
-				queryBuilder.field(field);
-			}
-			
-			if(mergedSearchTerms.isRegexp()) {	
-				queryBuilder.analyzeWildcard(true);
-			}
-			
-			return queryBuilder;
+		BoolQueryBuilder booleanQb = boolQuery();
+		List<QueryBuilder> clausesQueries = getClausesQueries(childrenClauses);
+		if(clausesQueries.isEmpty()) {
+			return null;
 		}
-		else {
-			BoolQueryBuilder booleanQb = boolQuery();
-			List<QueryBuilder> clausesQueries = getClausesQueries(childrenClauses);
-			if(clausesQueries.isEmpty()) {
-				return null;
-			}
-			for(QueryBuilder stqb : clausesQueries) {
-				booleanQb.should(stqb);
-			}	
-			return booleanQb;
-		}
+		
+		for(QueryBuilder stqb : clausesQueries) {
+			booleanQb.should(stqb);
+		}	
+		
+		return booleanQb;
 	}
 	
 	private List<QueryBuilder> getClausesQueries(List<Clause> clauses) {
@@ -178,10 +140,10 @@ public class EQL2ESHighlightVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		if(searchClause.hasIndex()) {
 			Index index = searchClause.getIndex();
 			Relation relation = searchClause.getRelation();
-			SearchTerms searchTerms = searchClause.getSearchTerms();
+			SearchTerm searchTerm = searchClause.getSearchTerm();
 		
 			String indexName = index.getName();
-			return searchClausetoES(indexName, relation, searchTerms);
+			return searchClausetoES(indexName, relation, searchTerm);
 		}
 		else {
 			QueryBuilder qb = visitChildren(searchClause);
@@ -199,13 +161,13 @@ public class EQL2ESHighlightVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		return null;
 	}
 	
-	private QueryBuilder searchClausetoES(String index, Relation relation, SearchTerms searchTerms) {
+	private QueryBuilder searchClausetoES(String index, Relation relation, SearchTerm searchTerm) {
 		
-		boolean hasWildcards = searchTerms.isRegexp();
+		boolean hasWildcards = searchTerm.isRegexp();
 		
-		String query = searchTerms.getSearchTerm();
+		String query = searchTerm.getSearchTerm();
 		if(hasWildcards && !relation.hasModifier("literal")) {
-			return searchClauseWithWildcards(index, relation, searchTerms);
+			return searchClauseWithWildcards(index, relation, searchTerm);
 		}
 		
 		if(relation.is("any") || relation.is("=")) {
@@ -271,20 +233,20 @@ public class EQL2ESHighlightVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			RangeQueryBuilder qb = rangeQuery(index);
 			return qb.lte(query);
 		}
-		else if(relation.is("within") && searchTerms.numberOfTerms() == 2) {
+		else if(relation.is("within") && searchTerm.numberOfTerms() == 2) {
 			RangeQueryBuilder qb = rangeQuery(index);	
-			return qb.gte(searchTerms.getTerm(0)).lte(searchTerms.getTerm(1));
+			return qb.gte(searchTerm.getTerm(0)).lte(searchTerm.getTerm(1));
 		}
 		
 		return null;	
 	}
 	
-	private QueryBuilder searchClauseWithWildcards(String index, Relation relation, SearchTerms searchTerms) {
+	private QueryBuilder searchClauseWithWildcards(String index, Relation relation, SearchTerm searchTerm) {
 		
-		String query = searchTerms.getSearchTerm();
+		String query = searchTerm.getSearchTerm();
 		
 		if(relation.is("any") || relation.is("=") || relation.is("all")) {
-			query = StringUtils.join(searchTerms.getTerms(), "");
+			query = StringUtils.join(searchTerm.getTerms(), "");
 			QueryStringQueryBuilder queryBuilder = queryStringQuery("/" + query + "/");
 			queryBuilder.field(index);
 			queryBuilder.analyzeWildcard(true);
@@ -298,7 +260,7 @@ public class EQL2ESHighlightVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		
 		if(relation.is("==")) {
 			if(relation.hasModifier("regexp")) {
-				query = StringUtils.join(searchTerms.getTerms(), "");
+				query = StringUtils.join(searchTerm.getTerms(), "");
 				return regexpQuery(index, query);
 			}
 			else {
@@ -307,7 +269,7 @@ public class EQL2ESHighlightVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		}
 		
 		if(relation.is("adj")) {
-			query = StringUtils.join(searchTerms.getTerms(), "");
+			query = StringUtils.join(searchTerm.getTerms(), "");
 			return regexpQuery(index, query);		
 		}
 		
@@ -315,11 +277,11 @@ public class EQL2ESHighlightVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 	}
 	
 	@Override
-	public QueryBuilder visitSearchTerms(SearchTerms searchTerms) {
+	public QueryBuilder visitSearchTerm(SearchTerm searchTerm) {
 		Set<String> fields = schema.getTextualFieldNames();
 		String[] fieldNames = fields.toArray(new String[fields.size()]);
 				
-		MultiMatchQueryBuilder qb = multiMatchQuery(searchTerms.getSearchTerm(), fieldNames);
+		MultiMatchQueryBuilder qb = multiMatchQuery(searchTerm.getSearchTerm(), fieldNames);
 		qb.operator(org.elasticsearch.index.query.Operator.AND);
 			
 		return qb;

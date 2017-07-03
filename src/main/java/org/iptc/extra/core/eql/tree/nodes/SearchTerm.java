@@ -1,11 +1,11 @@
-package org.iptc.extra.core.eql.tree;
+package org.iptc.extra.core.eql.tree.nodes;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
-public class SearchTerms extends Node {
+public class SearchTerm extends Node {
 	
 	private static String[] regexpCharacters =  {".", "+", "|", "{", "}", "[", "]", "(", ")", "\"", "\\"};
 	
@@ -13,11 +13,15 @@ public class SearchTerms extends Node {
 	
 	private List<String> terms = new ArrayList<String>();
 
-	public SearchTerms() {
+	public SearchTerm() {
 		
 	}
 	
-	public SearchTerms(List<String> terms) {
+	public SearchTerm(String term) {
+		this.terms.add(term);
+	}
+
+	public SearchTerm(List<String> terms) {
 		this.terms.addAll(terms);
 	}
 
@@ -81,6 +85,7 @@ public class SearchTerms extends Node {
 		return terms.get(index);
 	}
 	
+	// Does search term contains wild-cards?
 	public boolean hasWildCards() {
 		for(String term : terms) {
 			boolean has = hasWildCards(term);
@@ -101,6 +106,7 @@ public class SearchTerms extends Node {
 		return false;
 	}
 	
+	// Is search term a regular expression?
 	public boolean isRegexp() {
 		for(String term : terms) {
 			boolean isRegex = isRegexp(term);
@@ -117,9 +123,21 @@ public class SearchTerms extends Node {
 				return true;
 			}
 		}
+		
 		return false;
 	}
 	
+	// check whether the regular expression contains a whitespace character
+	public boolean doesRegexpContainWhitespaces() {
+		String regexp = StringUtils.join(terms, "");
+		if(regexp.contains("\\s")) {
+			return true;
+		}
+		
+		return false;
+	}
+	
+	// Get regular expression string 
 	public String getRegexp(boolean predefinedCharacterClasses) {
 		String regexp = StringUtils.join(terms, "");
 		

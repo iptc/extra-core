@@ -4,17 +4,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import org.iptc.extra.core.eql.tree.Clause;
-import org.iptc.extra.core.eql.tree.CommentClause;
-import org.iptc.extra.core.eql.tree.ErrorMessageNode;
-import org.iptc.extra.core.eql.tree.Index;
-import org.iptc.extra.core.eql.tree.Node;
-import org.iptc.extra.core.eql.tree.Operator;
-import org.iptc.extra.core.eql.tree.PrefixClause;
-import org.iptc.extra.core.eql.tree.Relation;
-import org.iptc.extra.core.eql.tree.SearchClause;
-import org.iptc.extra.core.eql.tree.SearchTerms;
-import org.iptc.extra.core.eql.tree.extra.ExtraOperator;
+import org.iptc.extra.core.eql.tree.extra.EQLOperator;
+import org.iptc.extra.core.eql.tree.nodes.Clause;
+import org.iptc.extra.core.eql.tree.nodes.CommentClause;
+import org.iptc.extra.core.eql.tree.nodes.ErrorMessageNode;
+import org.iptc.extra.core.eql.tree.nodes.Index;
+import org.iptc.extra.core.eql.tree.nodes.Node;
+import org.iptc.extra.core.eql.tree.nodes.Operator;
+import org.iptc.extra.core.eql.tree.nodes.PrefixClause;
+import org.iptc.extra.core.eql.tree.nodes.Relation;
+import org.iptc.extra.core.eql.tree.nodes.SearchClause;
+import org.iptc.extra.core.eql.tree.nodes.SearchTerm;
 import org.iptc.extra.core.eql.tree.utils.TreeUtils;
 import org.iptc.extra.core.types.Schema;
 import org.iptc.extra.core.types.Schema.Field;
@@ -40,18 +40,18 @@ public class EQLValidator extends SyntaxTreeVisitor<List<ErrorMessageNode>> {
 		List<ErrorMessageNode> invalidNodes = new ArrayList<ErrorMessageNode>();
 		
 		Operator operator = prefixClause.getOperator();
-		ExtraOperator extraOperator = prefixClause.getExtraOperator();
+		EQLOperator extraOperator = prefixClause.getEQLOperator();
 		
-		if(extraOperator == ExtraOperator.SENTENCE || extraOperator == ExtraOperator.NOT_IN_SENTENCE ||
-				extraOperator == ExtraOperator.PARAGRAPH || extraOperator == ExtraOperator.NOT_IN_PARAGRAPH || 
-				extraOperator == ExtraOperator.DISTANCE || extraOperator == ExtraOperator.NOT_WITHIN_DISTANCE || 
-				extraOperator == ExtraOperator.ORDER || extraOperator == ExtraOperator.ORDER_AND_DISTANCE || extraOperator == ExtraOperator.NOT_IN_PHRASE) {
+		if(extraOperator == EQLOperator.SENTENCE || extraOperator == EQLOperator.NOT_IN_SENTENCE ||
+				extraOperator == EQLOperator.PARAGRAPH || extraOperator == EQLOperator.NOT_IN_PARAGRAPH || 
+				extraOperator == EQLOperator.DISTANCE || extraOperator == EQLOperator.NOT_WITHIN_DISTANCE || 
+				extraOperator == EQLOperator.ORDER || extraOperator == EQLOperator.ORDER_AND_DISTANCE || extraOperator == EQLOperator.NOT_IN_PHRASE) {
 			
 			if(prefixClause.getClauses().size() != 2) {
-				if(prefixClause.getClauses().size() == 1 && (extraOperator == ExtraOperator.SENTENCE || extraOperator == ExtraOperator.NOT_IN_SENTENCE ||
-						extraOperator == ExtraOperator.PARAGRAPH || extraOperator == ExtraOperator.NOT_IN_PARAGRAPH)) {
+				if(prefixClause.getClauses().size() == 1 && (extraOperator == EQLOperator.SENTENCE || extraOperator == EQLOperator.NOT_IN_SENTENCE ||
+						extraOperator == EQLOperator.PARAGRAPH || extraOperator == EQLOperator.NOT_IN_PARAGRAPH)) {
 					Clause childClause = prefixClause.getClause(0);	
-					if(!(childClause instanceof PrefixClause) || !ExtraOperator.isWordDistanceOperator(((PrefixClause) childClause).getExtraOperator())) {
+					if(!(childClause instanceof PrefixClause) || !EQLOperator.isWordDistanceOperator(((PrefixClause) childClause).getEQLOperator())) {
 						ErrorMessageNode node = new ErrorMessageNode();
 						node.setErrorMessage(operator.toString() + " (" + extraOperator + ") has invalid sub-statement. Only distance operators are permitted in single statements.");
 					
@@ -96,7 +96,7 @@ public class EQLValidator extends SyntaxTreeVisitor<List<ErrorMessageNode>> {
 							continue;
 						}
 						
-						if(!field.hasSentences && (extraOperator == ExtraOperator.SENTENCE || extraOperator == ExtraOperator.NOT_IN_SENTENCE)) {
+						if(!field.hasSentences && (extraOperator == EQLOperator.SENTENCE || extraOperator == EQLOperator.NOT_IN_SENTENCE)) {
 							ErrorMessageNode node = new ErrorMessageNode();
 							node.setErrorMessage(operator.toString() + " (" + extraOperator + ") cannot be applied on a field (" + index + ") without sentences");
 						 
@@ -104,7 +104,7 @@ public class EQLValidator extends SyntaxTreeVisitor<List<ErrorMessageNode>> {
 							operator.setValid(false);
 						}
 					
-						if(!field.hasParagraphs && (extraOperator == ExtraOperator.PARAGRAPH || extraOperator == ExtraOperator.NOT_IN_PARAGRAPH)) {
+						if(!field.hasParagraphs && (extraOperator == EQLOperator.PARAGRAPH || extraOperator == EQLOperator.NOT_IN_PARAGRAPH)) {
 							ErrorMessageNode node = new ErrorMessageNode();
 							node.setErrorMessage(operator.toString() + " (" + extraOperator + ") cannot be applied on a field (" + index + ") without paragraphs");
 						 
@@ -116,7 +116,7 @@ public class EQLValidator extends SyntaxTreeVisitor<List<ErrorMessageNode>> {
 			}
 		}
 		
-		if(extraOperator == ExtraOperator.MAXIMUM_OCCURRENCE || extraOperator == ExtraOperator.MINIMUM_OCCURRENCE) {
+		if(extraOperator == EQLOperator.MAXIMUM_OCCURRENCE || extraOperator == EQLOperator.MINIMUM_OCCURRENCE) {
 			int clauses = 0;
 			for(Clause clause : prefixClause.getClauses()) {
 				if(!(clause instanceof CommentClause)) {
@@ -164,12 +164,12 @@ public class EQLValidator extends SyntaxTreeVisitor<List<ErrorMessageNode>> {
 			invalidRelations.add(node);
 		}
 		
-		SearchTerms searchTerms = searchClause.getSearchTerms();
-		if(searchTerms.isRegexp()) {
+		SearchTerm searchTerm = searchClause.getSearchTerm();
+		if(searchTerm.isRegexp()) {
 			
 			if(relation.hasModifier("stemming")) {
 				ErrorMessageNode node = new ErrorMessageNode();
-				node.setErrorMessage(relation.toString() + ". Stemming cannot be mixed with regex: " + searchTerms);
+				node.setErrorMessage(relation.toString() + ". Stemming cannot be mixed with regex: " + searchTerm);
 				
 				invalidRelations.add(node);
 				relation.setValid(false);
@@ -177,7 +177,7 @@ public class EQLValidator extends SyntaxTreeVisitor<List<ErrorMessageNode>> {
 			
 			if(relation.is(">") || relation.is(">=") || relation.is("<") || relation.is("<=") || relation.is("within") || relation.is(">")) {
 				ErrorMessageNode node = new ErrorMessageNode();
-				node.setErrorMessage(relation.getRelation() + " relation cannot be mixed with regex: " + searchTerms);
+				node.setErrorMessage(relation.getRelation() + " relation cannot be mixed with regex: " + searchTerm);
 			
 				invalidRelations.add(node);
 				relation.setValid(false);
@@ -185,17 +185,17 @@ public class EQLValidator extends SyntaxTreeVisitor<List<ErrorMessageNode>> {
 			
 		}
 		
-		if(relation.hasModifier("regexp") && !searchTerms.isRegexp()) {
+		if(relation.hasModifier("regexp") && !searchTerm.isRegexp()) {
 			ErrorMessageNode node = new ErrorMessageNode();
-			node.setErrorMessage(relation + " has regexp modifier but no regexp has been detected in search term: " + searchTerms);
+			node.setErrorMessage(relation + " has regexp modifier but no regexp has been detected in search term: " + searchTerm);
 		
 			invalidRelations.add(node);
 			relation.setValid(false);
 		}
 		
-		if(relation.hasModifier("masked") && !searchTerms.hasWildCards()) {
+		if(relation.hasModifier("masked") && !searchTerm.hasWildCards()) {
 			ErrorMessageNode node = new ErrorMessageNode();
-			node.setErrorMessage(relation + " has masked modifier but no wildcards have been detected in search term: " + searchTerms);
+			node.setErrorMessage(relation + " has masked modifier but no wildcards have been detected in search term: " + searchTerm);
 		
 			invalidRelations.add(node);
 			relation.setValid(false);

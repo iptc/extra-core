@@ -1,15 +1,15 @@
 package org.iptc.extra.core.eql.tree.visitor;
 
 import org.iptc.extra.core.eql.SyntaxTree;
-import org.iptc.extra.core.eql.tree.Clause;
-import org.iptc.extra.core.eql.tree.CommentClause;
-import org.iptc.extra.core.eql.tree.Index;
-import org.iptc.extra.core.eql.tree.Operator;
-import org.iptc.extra.core.eql.tree.PrefixClause;
-import org.iptc.extra.core.eql.tree.ReferenceClause;
-import org.iptc.extra.core.eql.tree.Relation;
-import org.iptc.extra.core.eql.tree.SearchClause;
-import org.iptc.extra.core.eql.tree.SearchTerms;
+import org.iptc.extra.core.eql.tree.nodes.Clause;
+import org.iptc.extra.core.eql.tree.nodes.CommentClause;
+import org.iptc.extra.core.eql.tree.nodes.Index;
+import org.iptc.extra.core.eql.tree.nodes.Operator;
+import org.iptc.extra.core.eql.tree.nodes.PrefixClause;
+import org.iptc.extra.core.eql.tree.nodes.ReferenceClause;
+import org.iptc.extra.core.eql.tree.nodes.Relation;
+import org.iptc.extra.core.eql.tree.nodes.SearchClause;
+import org.iptc.extra.core.eql.tree.nodes.SearchTerm;
 
 /**
  * @author manosetro - Manos Schinas
@@ -59,7 +59,7 @@ public class EQL2JSTreeVisitor extends SyntaxTreeVisitor<String> {
 				buffer.append(visit(searchClause.getIndex()));
 				buffer.append(visit(searchClause.getRelation()));
 			}
-			buffer.append(visit(searchClause.getSearchTerms()));
+			buffer.append(visit(searchClause.getSearchTerm()));
 
 			buffer.append("</li> ");
 			return buffer.toString();
@@ -115,7 +115,7 @@ public class EQL2JSTreeVisitor extends SyntaxTreeVisitor<String> {
 		}
 		
 		@Override
-		public String visitSearchTerms(SearchTerms searchTerm) {
+		public String visitSearchTerm(SearchTerm searchTerm) {
 			StringBuffer buffer = new StringBuffer();
 			
 			buffer.append("<span class=\"searchTerm\"> ");

@@ -1,4 +1,4 @@
-package org.iptc.extra.core.eql.tree;
+package org.iptc.extra.core.eql.tree.nodes;
 
 public class ErrorMessageNode extends Node {
 

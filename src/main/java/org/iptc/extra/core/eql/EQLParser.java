@@ -18,20 +18,20 @@ import org.iptc.extra.core.eql.parsers.EqlLexer;
 import org.iptc.extra.core.eql.parsers.EqlParser;
 import org.iptc.extra.core.eql.parsers.EqlParser.ModifierContext;
 import org.iptc.extra.core.eql.parsers.EqlParser.StatementContext;
-import org.iptc.extra.core.eql.tree.Clause;
-import org.iptc.extra.core.eql.tree.CommentClause;
-import org.iptc.extra.core.eql.tree.ErrorMessageNode;
-import org.iptc.extra.core.eql.tree.Index;
-import org.iptc.extra.core.eql.tree.Modifier;
-import org.iptc.extra.core.eql.tree.Node;
-import org.iptc.extra.core.eql.tree.Operator;
-import org.iptc.extra.core.eql.tree.PrefixClause;
-import org.iptc.extra.core.eql.tree.ReferenceClause;
-import org.iptc.extra.core.eql.tree.Relation;
-import org.iptc.extra.core.eql.tree.SearchClause;
-import org.iptc.extra.core.eql.tree.SearchTerms;
-import org.iptc.extra.core.eql.tree.extra.ExtraOperator;
-import org.iptc.extra.core.eql.tree.extra.ExtraRelation;
+import org.iptc.extra.core.eql.tree.extra.EQLOperator;
+import org.iptc.extra.core.eql.tree.extra.EQLRelation;
+import org.iptc.extra.core.eql.tree.nodes.Clause;
+import org.iptc.extra.core.eql.tree.nodes.CommentClause;
+import org.iptc.extra.core.eql.tree.nodes.ErrorMessageNode;
+import org.iptc.extra.core.eql.tree.nodes.Index;
+import org.iptc.extra.core.eql.tree.nodes.Modifier;
+import org.iptc.extra.core.eql.tree.nodes.Node;
+import org.iptc.extra.core.eql.tree.nodes.Operator;
+import org.iptc.extra.core.eql.tree.nodes.PrefixClause;
+import org.iptc.extra.core.eql.tree.nodes.ReferenceClause;
+import org.iptc.extra.core.eql.tree.nodes.Relation;
+import org.iptc.extra.core.eql.tree.nodes.SearchClause;
+import org.iptc.extra.core.eql.tree.nodes.SearchTerm;
 
 /**
  * @author manosetro - Manos Schinas
@@ -69,10 +69,10 @@ public class EQLParser {
 				Node operator = visit(ctx.booleanOp()); 
 				operator.setParent(prefixClause);
 				
-				ExtraOperator extraOperator = ExtraOperator.getExtraOperator((Operator) operator);
-				prefixClause.setExtraOperator(extraOperator);
+				EQLOperator extraOperator = EQLOperator.getEQLOperator((Operator) operator);
+				prefixClause.setEQLOperator(extraOperator);
 				
-				if(extraOperator == ExtraOperator.MAXIMUM_OCCURRENCE || extraOperator == ExtraOperator.MINIMUM_OCCURRENCE) {
+				if(extraOperator == EQLOperator.MAXIMUM_OCCURRENCE || extraOperator == EQLOperator.MINIMUM_OCCURRENCE) {
 					prefixClause.setRelaxed(true);
 				}
 				
@@ -140,7 +140,7 @@ public class EQLParser {
 				
 				depth--;
 				
-				boolean valid = ExtraOperator.isValid(operator);
+				boolean valid = EQLOperator.isValid(operator);
 				operator.setValid(valid);
 				
 				return operator;
@@ -155,7 +155,7 @@ public class EQLParser {
 				
 				Node searchTerms = visit(ctx.searchTerm());
 				searchTerms.setParent(searchClause);
-				searchClause.setSearchTerm((SearchTerms) searchTerms);
+				searchClause.setSearchTerm((SearchTerm) searchTerms);
 				
 				if(ctx.index() != null) {
 					if(ctx.relation() != null) {
@@ -216,7 +216,7 @@ public class EQLParser {
 				
 				depth--;
 				
-				boolean valid = ExtraRelation.isValid(relation);
+				boolean valid = EQLRelation.isValid(relation);
 				relation.setValid(valid);
 				
 				return relation;
@@ -231,10 +231,10 @@ public class EQLParser {
 					}
 				}
 				
-				SearchTerms searchTerms = new SearchTerms(terms);
-				searchTerms.setDepth(depth);
+				SearchTerm searchTerm = new SearchTerm(terms);
+				searchTerm.setDepth(depth);
 				
-				return searchTerms;
+				return searchTerm;
 			}
 			
 			@Override 

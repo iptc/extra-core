@@ -1,15 +1,15 @@
 package org.iptc.extra.core.eql.tree.visitor;
 
-import org.iptc.extra.core.eql.tree.Clause;
-import org.iptc.extra.core.eql.tree.CommentClause;
-import org.iptc.extra.core.eql.tree.Index;
-import org.iptc.extra.core.eql.tree.Node;
-import org.iptc.extra.core.eql.tree.Operator;
-import org.iptc.extra.core.eql.tree.PrefixClause;
-import org.iptc.extra.core.eql.tree.ReferenceClause;
-import org.iptc.extra.core.eql.tree.Relation;
-import org.iptc.extra.core.eql.tree.SearchClause;
-import org.iptc.extra.core.eql.tree.SearchTerms;
+import org.iptc.extra.core.eql.tree.nodes.Clause;
+import org.iptc.extra.core.eql.tree.nodes.CommentClause;
+import org.iptc.extra.core.eql.tree.nodes.Index;
+import org.iptc.extra.core.eql.tree.nodes.Node;
+import org.iptc.extra.core.eql.tree.nodes.Operator;
+import org.iptc.extra.core.eql.tree.nodes.PrefixClause;
+import org.iptc.extra.core.eql.tree.nodes.ReferenceClause;
+import org.iptc.extra.core.eql.tree.nodes.Relation;
+import org.iptc.extra.core.eql.tree.nodes.SearchClause;
+import org.iptc.extra.core.eql.tree.nodes.SearchTerm;
 
 /**
  * @author manosetro - Manos Schinas
@@ -34,8 +34,8 @@ public class SyntaxTreeVisitor<T> {
 			 return visitOperator((Operator) node);
 		 }
 		 
-		 if (node instanceof SearchTerms) {
-			 return visitSearchTerms((SearchTerms) node);
+		 if (node instanceof SearchTerm) {
+			 return visitSearchTerm((SearchTerm) node);
 		 }
 		 
 		 if (node instanceof CommentClause) {
@@ -83,7 +83,7 @@ public class SyntaxTreeVisitor<T> {
 		return visitChildren(operator);
 	}
 	
-	public T visitSearchTerms(SearchTerms searchTerm) {
+	public T visitSearchTerm(SearchTerm searchTerm) {
 		return visitChildren(searchTerm);
 	}
 	

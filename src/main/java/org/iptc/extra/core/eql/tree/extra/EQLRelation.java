@@ -1,12 +1,12 @@
 package org.iptc.extra.core.eql.tree.extra;
 
-import org.iptc.extra.core.eql.tree.Relation;
+import org.iptc.extra.core.eql.tree.nodes.Relation;
 
-public enum ExtraRelation {
+public enum EQLRelation {
 
 	CONTAIN ("="), 
 	EXACT ("=="), 
-	NOT_EQUAL (""), 
+	NOT_EQUAL ("<>"), 
 	LT ("<"), 
 	LTE ("<="), 
 	GT (">"), 
@@ -18,7 +18,7 @@ public enum ExtraRelation {
 	
 	private final String relation;
 	
-	ExtraRelation(String relation) {
+	EQLRelation(String relation) {
 		this.relation = relation;
 	};
 	
@@ -29,7 +29,9 @@ public enum ExtraRelation {
 		if(r == null) {
 			return false;
 		}
-			
+		
+		r = r.toLowerCase();
+		
 		if(r.equals(CONTAIN.relation())) {
 			return true;
 		}

@@ -2,12 +2,12 @@ package org.iptc.extra.core.eql.tree.extra;
 
 import java.util.List;
 
-import org.iptc.extra.core.eql.tree.Clause;
-import org.iptc.extra.core.eql.tree.Modifier;
-import org.iptc.extra.core.eql.tree.Operator;
-import org.iptc.extra.core.eql.tree.PrefixClause;
+import org.iptc.extra.core.eql.tree.nodes.Clause;
+import org.iptc.extra.core.eql.tree.nodes.Modifier;
+import org.iptc.extra.core.eql.tree.nodes.Operator;
+import org.iptc.extra.core.eql.tree.nodes.PrefixClause;
 
-public enum ExtraOperator {
+public enum EQLOperator {
 	
 	AND, 
 	OR, 
@@ -30,7 +30,7 @@ public enum ExtraOperator {
 	MAXIMUM_PARAGRAPHS,
 	PARAGRAPH_POSITION;
 
-	public static ExtraOperator getExtraOperator(Operator operator) {
+	public static EQLOperator getEQLOperator(Operator operator) {
 		
 		List<Modifier> modifiers = operator.getModifiers();
 		String op = operator.getOperator();
@@ -125,23 +125,23 @@ public enum ExtraOperator {
 	}
 	
 	public static boolean isValid(Operator operator) {
-		ExtraOperator extraOperator = getExtraOperator(operator);
+		EQLOperator extraOperator = getEQLOperator(operator);
 		return extraOperator != null;
 	}
 	
-	public static boolean isExtraOperatorClause(Clause clause, ExtraOperator extraOperator) {
+	public static boolean isEQLOperatorClause(Clause clause, EQLOperator extraOperator) {
 		if(clause instanceof PrefixClause) {
 			PrefixClause prefixClause = (PrefixClause) clause;
-			if(prefixClause.getExtraOperator() != null && prefixClause.getExtraOperator() == extraOperator) {
+			if(prefixClause.getEQLOperator() != null && prefixClause.getEQLOperator() == extraOperator) {
 				return true;
 			}
 		}
 		return false;
 	}
 	
-	public static boolean isWordDistanceOperator(ExtraOperator extraOperator) {
-		return (extraOperator == ExtraOperator.DISTANCE || extraOperator == ExtraOperator.NOT_WITHIN_DISTANCE || 
-				extraOperator == ExtraOperator.ORDER || extraOperator == ExtraOperator.ORDER_AND_DISTANCE || 
-				extraOperator == ExtraOperator.NOT_IN_PHRASE);
+	public static boolean isWordDistanceOperator(EQLOperator extraOperator) {
+		return (extraOperator == EQLOperator.DISTANCE || extraOperator == EQLOperator.NOT_WITHIN_DISTANCE || 
+				extraOperator == EQLOperator.ORDER || extraOperator == EQLOperator.ORDER_AND_DISTANCE || 
+				extraOperator == EQLOperator.NOT_IN_PHRASE);
 	}
 }

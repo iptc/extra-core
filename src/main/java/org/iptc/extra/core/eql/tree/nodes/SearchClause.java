@@ -1,5 +1,7 @@
-package org.iptc.extra.core.eql.tree;
+package org.iptc.extra.core.eql.tree.nodes;
 
+import java.util.ArrayList;
+import java.util.List;
 
 public class SearchClause extends Clause {
 
@@ -7,28 +9,28 @@ public class SearchClause extends Clause {
 	
 	private Relation relation;
 	
-	private SearchTerms searchTerms;
+	private SearchTerm searchTerm;
 
 	public SearchClause() {
 		
 	}
 	
-	public SearchClause(SearchTerms searchTerms) {
+	public SearchClause(SearchTerm searchTerm) {
 		super();
-		this.searchTerms = searchTerms;
+		this.searchTerm = searchTerm;
 
-		children.add(searchTerms);
+		children.add(searchTerm);
 	}
 	
-	public SearchClause(Index index, Relation relation, SearchTerms searchTerms) {
+	public SearchClause(Index index, Relation relation, SearchTerm searchTerm) {
 		super();
 		this.index = index;
 		this.relation = relation;
-		this.searchTerms = searchTerms;
+		this.searchTerm = searchTerm;
 		
 		children.add(index);
 		children.add(relation);
-		children.add(searchTerms);
+		children.add(searchTerm);
 	}
 	
 	public Index getIndex() {
@@ -49,13 +51,13 @@ public class SearchClause extends Clause {
 		children.add(relation);
 	}
 
-	public SearchTerms getSearchTerms() {
-		return searchTerms;
+	public SearchTerm getSearchTerm() {
+		return searchTerm;
 	}
 
-	public void setSearchTerm(SearchTerms searchTerms) {
-		this.searchTerms = searchTerms;
-		children.add(searchTerms);
+	public void setSearchTerm(SearchTerm searchTerm) {
+		this.searchTerm = searchTerm;
+		children.add(searchTerm);
 	}
 	
 	public boolean hasIndex() {
@@ -64,6 +66,19 @@ public class SearchClause extends Clause {
 	
 	@Override
 	public String toString() {
-		return (hasIndex() ? index + " " + relation + " " : "") + searchTerms.toString();
+		return (hasIndex() ? index + " " + relation + " " : "") + searchTerm.toString();
+	}
+	
+	public List<SearchClause> splitSearchClause() {
+		List<SearchClause> searchClauses = new ArrayList<SearchClause>();
+		
+		for(String term : searchTerm.getTerms()) {
+			SearchTerm st = new SearchTerm(term);
+			SearchClause searchClause = new SearchClause(index, relation, st);
+			
+			searchClauses.add(searchClause);
+		}
+		
+		return searchClauses;
 	}
 }

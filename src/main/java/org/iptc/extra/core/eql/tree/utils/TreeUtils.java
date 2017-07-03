@@ -10,16 +10,16 @@ import java.util.Set;
 
 import org.iptc.extra.core.eql.EQLParser;
 import org.iptc.extra.core.eql.SyntaxTree;
-import org.iptc.extra.core.eql.tree.Clause;
-import org.iptc.extra.core.eql.tree.CommentClause;
-import org.iptc.extra.core.eql.tree.Index;
-import org.iptc.extra.core.eql.tree.Node;
-import org.iptc.extra.core.eql.tree.Operator;
-import org.iptc.extra.core.eql.tree.PrefixClause;
-import org.iptc.extra.core.eql.tree.ReferenceClause;
-import org.iptc.extra.core.eql.tree.Relation;
-import org.iptc.extra.core.eql.tree.SearchClause;
-import org.iptc.extra.core.eql.tree.SearchTerms;
+import org.iptc.extra.core.eql.tree.nodes.Clause;
+import org.iptc.extra.core.eql.tree.nodes.CommentClause;
+import org.iptc.extra.core.eql.tree.nodes.Index;
+import org.iptc.extra.core.eql.tree.nodes.Node;
+import org.iptc.extra.core.eql.tree.nodes.Operator;
+import org.iptc.extra.core.eql.tree.nodes.PrefixClause;
+import org.iptc.extra.core.eql.tree.nodes.ReferenceClause;
+import org.iptc.extra.core.eql.tree.nodes.Relation;
+import org.iptc.extra.core.eql.tree.nodes.SearchClause;
+import org.iptc.extra.core.eql.tree.nodes.SearchTerm;
 import org.iptc.extra.core.eql.tree.visitor.SyntaxTreeVisitor;
 import org.iptc.extra.core.types.Rule;
 import org.iptc.extra.core.types.Schema;
@@ -259,15 +259,15 @@ public class TreeUtils {
 		return true;
 	}
 	
-	public static SearchTerms mergeSearchTerms(List<Clause> clauses) {
-		SearchTerms mergedSearchTerms = new SearchTerms();
+	public static SearchTerm mergeSearchTerm(List<Clause> clauses) {
+		SearchTerm mergedSearchTerm = new SearchTerm();
 		
 		List<String> mergedTerms = new ArrayList<String>();
 		for(Clause clause : clauses) {
 			if(clause instanceof SearchClause) {
 				SearchClause searchClause = (SearchClause) clause;
 				
-				SearchTerms searchTerms = searchClause.getSearchTerms();
+				SearchTerm searchTerms = searchClause.getSearchTerm();
 				if(searchTerms.isRegexp()) {
 					mergedTerms.add(searchTerms.getRegexp(false));
 				}
@@ -278,8 +278,8 @@ public class TreeUtils {
 			}
 		}
 		
-		mergedSearchTerms.setTerms(mergedTerms);
-		return mergedSearchTerms;
+		mergedSearchTerm.setTerms(mergedTerms);
+		return mergedSearchTerm;
 	}
 	
 	public static List<String> getIndices(List<SearchClause> searchClauses) {

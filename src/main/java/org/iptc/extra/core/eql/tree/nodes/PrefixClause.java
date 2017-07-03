@@ -1,15 +1,15 @@
-package org.iptc.extra.core.eql.tree;
+package org.iptc.extra.core.eql.tree.nodes;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.iptc.extra.core.eql.tree.extra.ExtraOperator;
+import org.iptc.extra.core.eql.tree.extra.EQLOperator;
 
 public class PrefixClause extends Clause {
 
 	private Operator operator;
-	private ExtraOperator extraOperator;
+	private EQLOperator eqlOperator;
 	
 	private List<Clause> clauses = new ArrayList<Clause>();
 
@@ -24,12 +24,12 @@ public class PrefixClause extends Clause {
 		children.add(operator);
 	}
 
-	public ExtraOperator getExtraOperator() {
-		return extraOperator;
+	public EQLOperator getEQLOperator() {
+		return eqlOperator;
 	}
 
-	public void setExtraOperator(ExtraOperator extraOperator) {
-		this.extraOperator = extraOperator;
+	public void setEQLOperator(EQLOperator validOperator) {
+		this.eqlOperator = validOperator;
 	}
 	
 	public List<Clause> getClauses() {
