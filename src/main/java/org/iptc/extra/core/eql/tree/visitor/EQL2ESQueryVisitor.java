@@ -182,7 +182,7 @@ public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 					terms.addAll(searchTerm.getTerms());
 				}
 				else if(relation.is("adj")) {
-					terms.add(searchTerm.getSearchTerm().toLowerCase());
+					terms.add(searchTerm.getSearchTerm().toLowerCase().trim());
 				}
 			}
 		
@@ -206,7 +206,7 @@ public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			}
 			buffer.append("for (int i = 0; i < doc['" + field + "'].length; ++i) { ");
 			buffer.append("String t = doc['" + field + "'][i]; ");
-			buffer.append("String token = t.substring(0, t.indexOf('_')); ");
+			buffer.append("String token = t.substring(0, t.indexOf('_')).trim(); ");
 			buffer.append("def terms = ['" + StringUtils.join(terms, "', '")+ "']; ");
 			buffer.append("if(terms.contains(token)) { ");
 			buffer.append("String f = t.substring(t.indexOf('_') + 1); ");
