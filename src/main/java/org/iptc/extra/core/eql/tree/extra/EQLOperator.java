@@ -7,8 +7,14 @@ import org.iptc.extra.core.eql.tree.nodes.Modifier;
 import org.iptc.extra.core.eql.tree.nodes.Operator;
 import org.iptc.extra.core.eql.tree.nodes.PrefixClause;
 
+/**
+ * 
+ * @author manos schinas
+ * 
+ * A set of valid operators in EQL
+ *
+ */
 public enum EQLOperator {
-	
 	AND, 
 	OR, 
 	NOT, 

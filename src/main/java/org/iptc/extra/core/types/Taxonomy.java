@@ -5,6 +5,13 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 
+/**
+ * 
+ * @author manos schinas
+ * 
+ * That class represents a taxonomy of topics
+ *
+ */
 @Entity("taxonomies")
 @XmlRootElement()
 public class Taxonomy {

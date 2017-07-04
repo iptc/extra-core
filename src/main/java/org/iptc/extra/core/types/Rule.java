@@ -8,38 +8,45 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 
+/**
+ * 
+ * @author manos schinas
+ * 
+ * This class represents an extra rule, that can be used for retrieval and classification of documents.  
+ *
+ */
 @Entity("rules")
 @XmlRootElement()
 public class Rule {
 	
 	@Id
-	protected String id;
+	protected String id;	// the unique identifier of the rule
 	
-	protected String name;
+	protected String name;	// a representative name for the rule
 	
-	protected String query;
+	protected String query;	// the actual rule, expressed as an EQL query 
 
-	protected String status;
+	protected String status;	// the status of the rule. Can take three values: new, draft, submitted
 	
-	protected long createdAt;
+	protected long createdAt;	// creation date of the rule
 	
-	protected long updatedAt;
+	protected long updatedAt;	// update date of the rule
 	
-	protected long submittedAt = 0;
+	protected long submittedAt = 0;	// date of the last submission
 	
-	protected String uid;
+	protected String uid;			// the id of the user that created the ruled
 	
-	protected String parentRule;
+	protected String parentRule;	// the id of the parent rule, if any
 
-	protected String taxonomy;
+	protected String taxonomy;		// the id of the taxonomy associated with that rule
 	
-	protected String topicId;
+	protected String topicId;		// the id of the topic associated with that rule
 	
-	protected String topicName;
+	protected String topicName;		
 
-	protected List<String> group = new ArrayList<String>();
-	
-	protected List<String> schemas = new ArrayList<String>();
+	protected List<String> group = new ArrayList<String>();		// a list of group ids used to split rules into subsets
+		
+	protected List<String> schemas = new ArrayList<String>();	// a list of schemas to which the rule is associated
 
 	public Rule() {
 		
@@ -53,6 +60,8 @@ public class Rule {
 		this.id = id;
 		this.query = query;
 	}
+	
+	// Getters/ Setters
 	
 	public String getId() {
 		return id;

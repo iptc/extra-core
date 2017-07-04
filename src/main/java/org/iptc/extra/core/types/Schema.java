@@ -10,6 +10,13 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 
+/**
+ * 
+ * @author manos schinas
+ *
+ * Schema class represents a set of fields, and the type of each of these fields
+ *
+ */
 @Entity("schemas")
 @XmlRootElement
 public class Schema {
@@ -21,7 +28,7 @@ public class Schema {
 	
 	protected String language;
 	
-	protected List<Field> fields = new ArrayList<Field>();
+	protected List<Field> fields = new ArrayList<Field>();	// the set of fields
 	
 	public Schema() {
 		
@@ -116,9 +123,9 @@ public class Schema {
 		
 		public String name;
 		
-		public boolean textual = false;	
-		public boolean hasSentences = false;
-		public boolean hasParagraphs = false;
+		public boolean textual = false;			// indicates whether the field is textual or not 
+		public boolean hasSentences = false;	// indicates whether a textual field contains sentences  
+		public boolean hasParagraphs = false;	// indicates whether a textual field contains paragraphs 
 		
 		public Field() {
 			

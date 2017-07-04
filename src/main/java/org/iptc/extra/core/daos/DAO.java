@@ -7,6 +7,15 @@ import org.mongodb.morphia.query.Query;
 
 import com.mongodb.WriteResult;
 
+/**
+ * 
+ * @author manosetro
+ *
+ * @param <K>
+ * 
+ * Data Access Object class, used to access objects of type K for/to MongoDB.
+ * 
+ */
 public class DAO<K> extends BasicDAO<K, ObjectId> {
 
 	protected DAO(Datastore ds) {

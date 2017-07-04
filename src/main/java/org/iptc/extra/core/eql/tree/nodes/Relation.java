@@ -1,5 +1,16 @@
 package org.iptc.extra.core.eql.tree.nodes;
 
+/**
+ * 
+ * @author manos schinas
+ *
+ *	Part of search clauses:
+ *
+ * 	Index		Relation		SearchTerm
+ *	|			|				|
+ *	title 		any 			"term1 term2"
+ *
+ */
 public class Relation extends Modified  {
 
 	private String relation; 

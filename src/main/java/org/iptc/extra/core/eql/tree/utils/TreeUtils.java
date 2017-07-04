@@ -26,14 +26,25 @@ import org.iptc.extra.core.types.Schema;
 
 import edu.stanford.nlp.util.StringUtils;
 
+/**
+ * 
+ * @author manos schinas
+ *
+ * This class contains a set of static methods, for the processing of syntax true produced by EQL parser
+ * 
+ */
 public class TreeUtils {
 	
+	// Checks whether the tree starting to root node is valid
 	public static boolean isTreeValid(Node root) {
+		// iterate over relation nodes. Return false (rule is invalid) if any relation is invalid
 		for(Relation relation : getRelations(root)) {
 			if(!relation.isValid()) {
 				return false;
 			}
 		}
+		
+		// iterate over operator nodes. Return false (rule is invalid) if any operator is invalid
 		for(Operator operator : getOperators(root)) {
 			if(!operator.isValid()) {
 				return false;
@@ -42,6 +53,7 @@ public class TreeUtils {
 		return true;
 	}
 	
+	// Iterate over relation and operator nodes and return any invalid node
 	public static List<Node> getInvalidNodes(Node root) {
 		List<Node> nodes = new ArrayList<Node>();
 		for(Relation relation : getRelations(root)) {
@@ -58,6 +70,9 @@ public class TreeUtils {
 		return nodes;
 	}
 	
+	/* 
+	 * checks whether the tree, starting at root, matches the given schema. Returns invalid fields/indices
+	 */
 	public static Set<String> validateSchema(Node root, Schema schema) {
 		SyntaxTreeVisitor<Set<String>> visitor = new SyntaxTreeVisitor<Set<String>>() {
 			public Set<String> visitIndex(Index index) {
@@ -89,6 +104,9 @@ public class TreeUtils {
 		
 	}
 	
+	/*
+	 * Validate tree across multiple schemas
+	 */
 	public static Map<String, Set<String>> validateSchema(Node root, List<Schema> schemas) {
 		
 		Map<String, Set<String>> map = new HashMap<String, Set<String>>();
@@ -104,6 +122,9 @@ public class TreeUtils {
 		return map;
 	}
 	
+	/* 
+	 * Traverse the tree and returns a set of indices
+	 */
 	public static Set<String> getIndices(Node root) {
 		SyntaxTreeVisitor<Set<String>> visitor = new SyntaxTreeVisitor<Set<String>>() {
 			
@@ -131,6 +152,9 @@ public class TreeUtils {
 		return indices;
 	}
 	
+	/* 
+	 * Traverse the tree and returns a set of relation nodes
+	 */
 	public static Set<Relation> getRelations(Node root) {
 		SyntaxTreeVisitor<Set<Relation>> visitor = new SyntaxTreeVisitor<Set<Relation>>() {
 			public Set<Relation> visitRelation(Relation relation) {
@@ -154,6 +178,14 @@ public class TreeUtils {
 		return relations;
 	}
 	
+	/* 
+	 * Traverse the tree and returns a set of nodes, corresponding to search clauses:
+	 * 
+	 * SearchClause: Index Relation SearchTerm
+	 * 
+	 * e.g.	title any "term1 term2"
+	 * 
+	 */
 	public static Set<SearchClause> getSearchClauses(Node root) {
 		SyntaxTreeVisitor<Set<SearchClause>> visitor = new SyntaxTreeVisitor<Set<SearchClause>>() {
 			public Set<SearchClause> visitSearchClause(SearchClause searchClause) {
@@ -177,6 +209,12 @@ public class TreeUtils {
 		return searchClauses;
 	}
 	
+	/* 
+	 * Traverse the tree and returns a set of nodes, corresponding to search clauses having no idnex and relation
+	 * 
+	 * e.g. "term1 term2"
+	 * 
+	 */
 	public static Set<SearchClause> getSearchTermClauses(Node root) {
 		SyntaxTreeVisitor<Set<SearchClause>> visitor = new SyntaxTreeVisitor<Set<SearchClause>>() {
 			public Set<SearchClause> visitSearchClause(SearchClause searchClause) {
@@ -203,6 +241,9 @@ public class TreeUtils {
 		return searchClauses;
 	}
 	
+	/* 
+	 * Traverse the tree and returns a set of operator nodes
+	 */
 	public static Set<Operator> getOperators(Node root) {
 		SyntaxTreeVisitor<Set<Operator>> visitor = new SyntaxTreeVisitor<Set<Operator>>() {
 			public Set<Operator> visitOperator(Operator operator) {
@@ -226,6 +267,9 @@ public class TreeUtils {
 		return operators;
 	}
 	
+	/*
+	 * iterates over a list of clauses and checks whether all of them are search clauses
+	 */
 	public static boolean areSearchClauses(Collection<Clause> clauses) {
 		for(Clause clause : clauses) {
 			if(clause instanceof CommentClause) {
@@ -238,6 +282,9 @@ public class TreeUtils {
 		return true;
 	}
 	
+	/*
+	 * iterates over a list of clauses and checks whether all of them are search clauses without index and relation
+	 */
 	public static boolean areSearchTermClauses(Collection<Clause> clauses) {
 		for(Clause clause : clauses) {
 			if(clause instanceof CommentClause) {
@@ -259,12 +306,18 @@ public class TreeUtils {
 		return true;
 	}
 	
+	/* 
+	 * Iterates over a list of clauses and create a SearchTerm produced by the concatenation of underlying SearchTerms.
+	 * 
+	 * Clauses other than search clauses are ignored
+	 * 
+	 */
 	public static SearchTerm mergeSearchTerm(List<Clause> clauses) {
 		SearchTerm mergedSearchTerm = new SearchTerm();
 		
 		List<String> mergedTerms = new ArrayList<String>();
 		for(Clause clause : clauses) {
-			if(clause instanceof SearchClause) {
+			if(clause instanceof SearchClause) {	// use only SearchClause statements
 				SearchClause searchClause = (SearchClause) clause;
 				
 				SearchTerm searchTerms = searchClause.getSearchTerm();
@@ -282,6 +335,9 @@ public class TreeUtils {
 		return mergedSearchTerm;
 	}
 	
+	/* 
+	 * Traverse the tree and returns a set of index nodes
+	 */
 	public static List<String> getIndices(List<SearchClause> searchClauses) {
 		Set<String> set = new HashSet<String>();
 		for(SearchClause searchClause : searchClauses) {
@@ -293,6 +349,9 @@ public class TreeUtils {
 		return new ArrayList<String>(set);
 	}
 	
+	/*
+	 * Traverse the tree and aggregate reference clauses
+	 */
 	public static List<ReferenceClause> getReferences(Node root) {
 		SyntaxTreeVisitor<List<ReferenceClause>> visitor = new SyntaxTreeVisitor<List<ReferenceClause>>() {
 			
@@ -317,6 +376,7 @@ public class TreeUtils {
 		return references;
 	}
 	
+	// validate a rule references inside another rule 
 	public static void validateReferenceRule(ReferenceClause reference, Schema schema) {
 		
 		Rule rule = reference.getRule();
@@ -342,8 +402,7 @@ public class TreeUtils {
 		if(syntaxTree.hasErrors() || root == null) {
 			return false;
 		}
-		
-		
+
 		return true;
 		
 		//List<ErrorMessageNode> invalidNodes = ExtraValidator.validate(root, schema);

@@ -36,13 +36,52 @@ import org.iptc.extra.core.eql.tree.nodes.SearchTerm;
 /**
  * @author manosetro - Manos Schinas
  * 
- * EXTRA language parser.
+ * Extra Query Language (EQL) parser built upon Antlr 
  * 
- * That class is used to parse a rule expressed as a string and to generate the corresponding syntax tree. 
+ * That class is used to parse a rule expressed as an EQL string.
+ * Generates the corresponding syntax tree. 
+ * 
  * 
  */
 public class EQLParser {
 	
+	/*
+	 * Given a rule expressed as an EQL query, that method returns a syntax tree (org.iptc.extra.core.eql.SyntaxTree)
+	 * 
+	 */
+	public static SyntaxTree parse(String eql) {
+		
+		CharStream input = new ANTLRInputStream(eql);
+		EqlLexer lexer = new EqlLexer(input);
+		CommonTokenStream tokens = new CommonTokenStream(lexer);
+		
+		EqlParser parser = new EqlParser(tokens);	// Antlr parser used to parse EQL 
+		parser.setBuildParseTree(true);
+		parser.removeErrorListeners(); 
+       
+		// add custom error listeners
+        SyntaxErrorsAggregator errorListener = new SyntaxErrorsAggregator();
+        parser.addErrorListener(errorListener); 
+        
+		ParseTree tree = parser.prefixClause();	// get Antlr ParseTree 
+		
+		SyntaxTree syntaxTree = new SyntaxTree();	
+		syntaxTree.setErrors(errorListener.getErrors());
+		try {
+			Node root = getRootNode(tree);	
+			syntaxTree.setRootNode(root);
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+			System.out.println(e.getMessage());
+		}
+		
+		return syntaxTree;
+	}
+	
+	/* 
+	 * transforms parse tree returned by Antlr parser to org.iptc.extra.core.eql.tree.Node
+	 */
 	private static Node getRootNode(ParseTree tree) {
 		
 		EqlBaseVisitor<Node> visitor = new EqlBaseVisitor<Node>() {
@@ -71,11 +110,6 @@ public class EQLParser {
 				
 				EQLOperator extraOperator = EQLOperator.getEQLOperator((Operator) operator);
 				prefixClause.setEQLOperator(extraOperator);
-				
-				if(extraOperator == EQLOperator.MAXIMUM_OCCURRENCE || extraOperator == EQLOperator.MINIMUM_OCCURRENCE) {
-					prefixClause.setRelaxed(true);
-				}
-				
 				prefixClause.setOperator((Operator) operator);
 				
 				List<Clause> clauses = new ArrayList<Clause>();
@@ -263,35 +297,6 @@ public class EQLParser {
 		return root;
 	}
 	
-	
-	public static SyntaxTree parse(String eql) {
-		CharStream input = new ANTLRInputStream(eql);
-		EqlLexer lexer = new EqlLexer(input);
-		CommonTokenStream tokens = new CommonTokenStream(lexer);
-		
-		EqlParser parser = new EqlParser(tokens);
-		parser.setBuildParseTree(true);
-		parser.removeErrorListeners(); 
-       
-        SyntaxErrorsAggregator errorListener = new SyntaxErrorsAggregator();
-        parser.addErrorListener(errorListener); 
-        
-		ParseTree tree = parser.prefixClause();		
-		
-		SyntaxTree syntaxTree = new SyntaxTree();
-		syntaxTree.setErrors(errorListener.getErrors());
-		
-		try {
-			Node root = getRootNode(tree);
-			syntaxTree.setRootNode(root);
-		}
-		catch(Exception e) {
-			e.printStackTrace();
-			System.out.println(e.getMessage());
-		}
-		
-		return syntaxTree;
-	}
 	
 	protected static class UnderlineListener extends BaseErrorListener {
 		public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e) {

@@ -18,7 +18,7 @@ import org.iptc.extra.core.types.Schema;
 public class EQLMapper {
 
 	/*
-	 * Transforms a rule to elastic search query
+	 * Transforms a rule expressed in EQL to elastic search query
 	 */
 	public QueryBuilder toElasticSearchQuery(Node root, Schema schema) {
 		if(root == null) {
@@ -32,7 +32,7 @@ public class EQLMapper {
 	}
 
 	/*
-	 * Transforms a rule to elastic search highlight query
+	 * Transforms a rule expressed in EQL to elastic search highlight query
 	 * That's a relaxed version of the ES query. 
 	 */
 	public QueryBuilder toElasticSearchHighlight(Node root, Schema schema) {
@@ -47,7 +47,7 @@ public class EQLMapper {
 	}
 	
 	/*
-	 * Transforms a rule to html
+	 * Transforms an EQL rule to HTML
 	 */
 	public String toHtml(Node root, String htmlTag) {
 		EQL2HTMLVisitor visitor = new EQL2HTMLVisitor(htmlTag);	
@@ -66,7 +66,7 @@ public class EQLMapper {
 	}
 	
 	/*
-	 * Transforms a rule to jstree
+	 * Transforms an EQL rule to jstree (https://www.jstree.com/)
 	 */
 	public String toJSTree(Node root) {
 		EQL2JSTreeVisitor visitor = new EQL2JSTreeVisitor();	

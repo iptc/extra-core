@@ -6,6 +6,13 @@ import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Transient;
 
+/**
+ * 
+ * @author manos schinas
+ * 
+ * Corpus class represents a set of documents
+ *
+ */
 @Entity("corpora")
 @XmlRootElement
 public class Corpus {
@@ -13,21 +20,21 @@ public class Corpus {
 	@Id
 	protected String id;
 	
-	protected String name;
+	protected String name;	// the name of the corpus
 	
-	protected String schemaId;
+	protected String schemaId;	// the id of the schema of the corpus. The documents belong to that corpus must have that schema
 
 	@Transient 
 	protected Schema schema;
 	
-	protected String taxonomyId;
+	protected String taxonomyId;	// the taxonomy to which the documents of the corpus are associated
 	
 	@Transient 
-	protected Taxonomy taxonomy;
+	protected Taxonomy taxonomy;	
 	
-	protected String language;
+	protected String language;	// the language of the documents
 	
-	protected long documents = 0;
+	protected long documents = 0;	// the number of documents associated with that corpus
 	
 	public Corpus() {
 		

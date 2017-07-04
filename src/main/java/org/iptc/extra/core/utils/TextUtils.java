@@ -16,8 +16,14 @@ import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import edu.stanford.nlp.util.CoreMap;
 
+/*
+ * Static methods for text pre-processing
+ */
 public class TextUtils {
 	
+	/*
+	 * Remove HTML tags and redundant whitespaces for a text
+	 */
 	public static String clean(String txt) {
 		
 		txt = txt.replaceAll("<!--.*?-->", " ").replaceAll("<[^>]+>", " ");
@@ -29,6 +35,9 @@ public class TextUtils {
 		return txt;
 	}
 
+	/*
+	 * Extract a list of sentences from a given text, using Stanford NLP 
+	 */
 	public static List<Sentence> getSentences(String text) {
 		
 		Properties props = new Properties();
@@ -47,6 +56,9 @@ public class TextUtils {
 		return sentences;
 	}
 	
+	/*
+	 * Extract a list of paragraphs from a given text. Paragraphs are enclosed into <p>...</p> tags
+	 */
 	public static List<String> getParagraphs(String text) {
 		List<String> paragraphs = new ArrayList<String>();
 

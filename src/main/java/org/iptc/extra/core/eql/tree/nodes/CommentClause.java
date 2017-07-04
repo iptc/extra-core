@@ -5,6 +5,11 @@ package org.iptc.extra.core.eql.tree.nodes;
  *
  *	CommentClause corresponds to in-line comments in the rule.
  *	Every string between //...// is considered as a comment and mapped to a CommentClause object in the syntax tree. 
+ *
+ *	(or
+ *		(title any "term1 term2 term2")
+ *		//this is a comment that will be mapped to a ReferenceClause//
+ *	)
  *	
  */
 public class CommentClause extends Clause {

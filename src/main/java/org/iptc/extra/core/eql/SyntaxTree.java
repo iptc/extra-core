@@ -8,15 +8,14 @@ import org.iptc.extra.core.eql.tree.nodes.Node;
 /**
  * @author manosetro
  *
- *	SyntaxTree class is the result of parsing of a given EXTRA rule. 
+ *	SyntaxTree class is the result of parsing of a given EQL rule. 
  *	
  */
 public class SyntaxTree {
 
-		private Node root;
+		private Node root;	// the root node of the syntax tree. Is the entry node for each class used to traverse the tree.
 	
-		private List<SyntaxError> errors = new ArrayList<SyntaxError>();
-
+		private List<SyntaxError> errors = new ArrayList<SyntaxError>();	// a list of syntax errors produced by Antlr during parsing
 
 		public List<SyntaxError> getErrors() {
 			return errors;

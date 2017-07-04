@@ -5,6 +5,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 
+ * @author manos schinas
+ *
+ *
+ */
 public class Modified extends Node {
 
 	protected Map<String, Modifier> modifiersMap = new HashMap<String, Modifier>();

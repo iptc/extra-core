@@ -8,25 +8,32 @@ import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Index;
 import org.mongodb.morphia.annotations.Indexes;
 
+/**
+ * 
+ * @author manos schinas
+ * 
+ * That class represents a topic
+ *
+ */
 @Entity("topics")
 @Indexes(@Index(fields = {@Field("topicId"), @Field(value = "taxonomyId")}))
 @XmlRootElement()
 public class Topic {
 	
 	@Id
-	protected String id;
+	protected String id;			// unique identifier, produced by the concatenation of taxonomy and topic id
 
-	protected String topicId;
+	protected String topicId;		// unique topic id inside the taxonomy
 	
-	protected String name;
+	protected String name;			// the name of the topic
 	
-	protected String definition;
+	protected String definition;	// a definition - description of the topic
 	
-	protected String parentTopic;
+	protected String parentTopic;	// the id of the parent of the topic (if any)
 
-	protected String taxonomyId;
+	protected String taxonomyId;	// the taxonomy to which the topic belongs to
 
-	protected String label;
+	protected String label;			
 	
 	public String getId() {
 		return id;
