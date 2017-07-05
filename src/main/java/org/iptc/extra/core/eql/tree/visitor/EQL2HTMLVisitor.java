@@ -14,6 +14,40 @@ import org.iptc.extra.core.eql.tree.nodes.SearchTerm;
  * @author manosetro - Manos Schinas
  * 
 *	EXTRA2ESQueryVisitor performs a depth-first traversal of the syntax tree and generates an HTML representation. 
+*	
+*	Example rule:
+*	
+*	(or
+*		(title any "term1 term2")
+*		(and
+*			(body adj "term3 term4")
+*			(body any "term5")
+*		)
+*	)
+*
+*	Transformed to the following HTML section:
+*
+*	<div class="prefixClause" data-depth="0" operator="OR"> (
+*		<div class="booleanOp" data-valid="true" data-depth="1"> or </div>
+*		<div class="searchClause" data-depth="1"> (
+*			<div class="index" data-valid="true" data-depth="2"> title </div> 
+*			<div class="relation" data-valid="true" data-depth="2"> any </div>
+*			<div class="searchTerm" data-depth="2"> "term1 term2" </div>
+*		)</div> 
+*		<div class="prefixClause" data-depth="1" operator="AND"> (
+*			<div class="booleanOp" data-valid="true" data-depth="2">and</div>
+*			<div class="searchClause" data-depth="2">(
+*				<div class="index" data-valid="true" data-depth="3"> body </div> 
+*				<div class="relation" data-valid="true" data-depth="3"> adj </div>
+*				<div class="searchTerm" data-depth="3"> "term3 term4" </div>
+*			)</div> 
+*			<div class="searchClause" data-depth="2"> (
+*				<div class="index" data-valid="true" data-depth="3"> body </div> 
+*				<div class="relation" data-valid="true" data-depth="3"> any </div>
+*				<div class="searchTerm" data-depth="3"> "term5" </div>
+*			)</div> 
+*		)</div>
+*	)</div>
 */
 public class EQL2HTMLVisitor extends SyntaxTreeVisitor<String> {
 	

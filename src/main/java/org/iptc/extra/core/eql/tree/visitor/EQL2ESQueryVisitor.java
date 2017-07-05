@@ -25,7 +25,7 @@ import org.elasticsearch.index.query.SpanOrQueryBuilder;
 import org.elasticsearch.index.query.SpanQueryBuilder;
 import org.elasticsearch.index.query.SpanTermQueryBuilder;
 import org.elasticsearch.script.Script;
-import org.iptc.extra.core.eql.SyntaxTree;
+import org.iptc.extra.core.eql.tree.SyntaxTree;
 import org.iptc.extra.core.eql.tree.extra.EQLOperator;
 import org.iptc.extra.core.eql.tree.nodes.Clause;
 import org.iptc.extra.core.eql.tree.nodes.CommentClause;

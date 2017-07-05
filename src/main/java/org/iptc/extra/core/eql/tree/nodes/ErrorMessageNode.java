@@ -1,5 +1,12 @@
 package org.iptc.extra.core.eql.tree.nodes;
 
+/**
+ * 
+ * @author manos schinas
+ * 
+ * A node that corresponds to a syntax error produced during eql parsing by antlr
+ *
+ */
 public class ErrorMessageNode extends Node {
 
 	private String errorMessage;

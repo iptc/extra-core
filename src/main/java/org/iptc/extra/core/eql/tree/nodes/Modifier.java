@@ -1,5 +1,20 @@
 package org.iptc.extra.core.eql.tree.nodes;
 
+/**
+ * 
+ * @author manos schinas
+ *	
+ *	A modifier has the following syntax in EQL
+ *	/modifier comparitor value
+ *
+ *	Example: or/count>5
+ *
+ *	Node or is modified by count>5
+ *	modifier: count
+ *	comparitor: >
+ *	value: 5
+ *	
+ */
 public class Modifier extends Node {
 	
 	private String modifier;

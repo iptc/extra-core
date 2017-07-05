@@ -18,6 +18,8 @@ import org.iptc.extra.core.eql.parsers.EqlLexer;
 import org.iptc.extra.core.eql.parsers.EqlParser;
 import org.iptc.extra.core.eql.parsers.EqlParser.ModifierContext;
 import org.iptc.extra.core.eql.parsers.EqlParser.StatementContext;
+import org.iptc.extra.core.eql.tree.SyntaxError;
+import org.iptc.extra.core.eql.tree.SyntaxTree;
 import org.iptc.extra.core.eql.tree.extra.EQLOperator;
 import org.iptc.extra.core.eql.tree.extra.EQLRelation;
 import org.iptc.extra.core.eql.tree.nodes.Clause;
@@ -80,7 +82,8 @@ public class EQLParser {
 	}
 	
 	/* 
-	 * transforms parse tree returned by Antlr parser to org.iptc.extra.core.eql.tree.Node
+	 * transforms parse tree (org.antlr.v4.runtime.tree.ParseTree) returned by Antlr parser to 
+	 * org.iptc.extra.core.eql.tree.Node
 	 */
 	private static Node getRootNode(ParseTree tree) {
 		
@@ -88,6 +91,10 @@ public class EQLParser {
 			
 			int depth = 0;
 			
+			/*
+			 * Visits org.iptc.extra.core.eql.parsers.EqlParser.PrefixClauseContext and produces the  
+			 * equivalent org.iptc.extra.core.eql.tree.nodes.PrefixClause
+			 */
 			@Override 
 			public Node visitPrefixClause(EqlParser.PrefixClauseContext ctx) { 
 				
@@ -133,6 +140,10 @@ public class EQLParser {
 				return prefixClause;				
 			}
 			
+			/*
+			 * Visits org.iptc.extra.core.eql.parsers.EqlParser.BooleanOpContext and produces the  
+			 * equivalent org.iptc.extra.core.eql.tree.nodes.Operator
+			 */
 			@Override 
 			public Node visitBooleanOp(EqlParser.BooleanOpContext ctx) { 
 				
@@ -180,6 +191,10 @@ public class EQLParser {
 				return operator;
 			}
 			
+			/*
+			 * Visits org.iptc.extra.core.eql.parsers.EqlParser.SearchClauseContext and produces the  
+			 * equivalent org.iptc.extra.core.eql.tree.nodes.SearchClause
+			 */
 			@Override 
 			public Node visitSearchClause(EqlParser.SearchClauseContext ctx) { 
 				
@@ -208,6 +223,10 @@ public class EQLParser {
 				return searchClause;
 			}
 			
+			/*
+			 * Visits org.iptc.extra.core.eql.parsers.EqlParser.CommentClauseContext and produces the  
+			 * equivalent org.iptc.extra.core.eql.tree.nodes.CommentClause
+			 */
 			@Override 
 			public Node visitCommentClause(EqlParser.CommentClauseContext ctx) {
 				List<String> terms = new ArrayList<String>();
@@ -222,6 +241,10 @@ public class EQLParser {
 				return commentClause; 
 			}
 			
+			/*
+			 * Visits org.iptc.extra.core.eql.parsers.EqlParser.RelationContext and produces the  
+			 * equivalent org.iptc.extra.core.eql.tree.nodes.Relation
+			 */
 			@Override 
 			public Node visitRelation(EqlParser.RelationContext ctx) { 
 				String relationName = ctx.comparitor().getText();
@@ -256,6 +279,10 @@ public class EQLParser {
 				return relation;
 			}
 			
+			/*
+			 * Visits org.iptc.extra.core.eql.parsers.EqlParser.SearchTermContext and produces the  
+			 * equivalent org.iptc.extra.core.eql.tree.nodes.SearchTerm
+			 */
 			@Override 
 			public Node visitSearchTerm(EqlParser.SearchTermContext ctx) {
 				List<String> terms = new ArrayList<String>();
@@ -271,6 +298,10 @@ public class EQLParser {
 				return searchTerm;
 			}
 			
+			/*
+			 * Visits org.iptc.extra.core.eql.parsers.EqlParser.ReferenceClauseContext and produces the  
+			 * equivalent org.iptc.extra.core.eql.tree.nodes.ReferenceClause
+			 */
 			@Override 
 			public Node visitReferenceClause(EqlParser.ReferenceClauseContext ctx) {
 				String ruleId = ctx.referencedRule().getText();
@@ -282,6 +313,10 @@ public class EQLParser {
 				return clause;
 			}
 			
+			/*
+			 * Visits org.iptc.extra.core.eql.parsers.EqlParser.ErrorNode and produces the  
+			 * equivalent org.iptc.extra.core.eql.tree.nodes.ErrorMessageNode
+			 */
 			@Override
 			public Node visitErrorNode(ErrorNode node) {
 				ErrorMessageNode errorMsgNode = new ErrorMessageNode();

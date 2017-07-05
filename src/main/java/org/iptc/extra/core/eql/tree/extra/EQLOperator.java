@@ -11,26 +11,26 @@ import org.iptc.extra.core.eql.tree.nodes.PrefixClause;
  * 
  * @author manos schinas
  * 
- * A set of valid operators in EQL
+ * A set of valid operators in EQL, built upon modified or, and, not, prox
  *
  */
 public enum EQLOperator {
-	AND, 
-	OR, 
-	NOT, 
-	MINIMUM, 
-	DISTANCE, 
-	MINIMUM_OCCURRENCE, 
-	MAXIMUM_OCCURRENCE,
-	ORDER, 
-	SENTENCE, 
-	NOT_WITHIN_DISTANCE, 
-	PARAGRAPH, 
-	NOT_IN_PHRASE,
-	NOT_IN_SENTENCE,
-	NOT_IN_PARAGRAPH,
-	ORDER_AND_DISTANCE,
-	FROM_START,
+	AND, 					// and
+	OR, 					// or
+	NOT, 					// not
+	MINIMUM, 				// or/countunique>n
+	DISTANCE, 				// prox/unit=word/distance<n
+	NOT_WITHIN_DISTANCE, 	// prox/unit=word/distance>n
+	MINIMUM_OCCURRENCE, 	// or/count>n
+	MAXIMUM_OCCURRENCE,		// or/count>n
+	ORDER, 					// prox/ordered
+	SENTENCE, 				// prox/unit=sentence/distance=1
+	PARAGRAPH, 				// prox/unit=paragraph/distance=1
+	NOT_IN_PHRASE,			// prox/unit=word/distance>0
+	NOT_IN_SENTENCE,		// prox/unit=sentence/distance>1
+	NOT_IN_PARAGRAPH,		// prox/unit=paragraph/distance>1
+	ORDER_AND_DISTANCE,		// prox/unit=word/distance<n/ordered
+	FROM_START,				
 	FROM_END,
 	MAXIMUM_SENTENCES,
 	MAXIMUM_PARAGRAPHS,

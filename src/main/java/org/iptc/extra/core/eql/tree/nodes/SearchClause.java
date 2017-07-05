@@ -3,6 +3,17 @@ package org.iptc.extra.core.eql.tree.nodes;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 
+ * 	@author manos schinas
+ *	
+ *	A search clause consists of 
+ * 	Index		Relation		SearchTerm
+ * 
+ * 	Index and Relation are optional parts. 
+ * 	When messing SearchTerm can match any field.
+ * 
+ */
 public class SearchClause extends Clause {
 
 	private Index index;

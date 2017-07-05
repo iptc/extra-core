@@ -6,14 +6,25 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.iptc.extra.core.eql.tree.extra.EQLOperator;
 
+/**
+ * 
+ * @author manos schinas
+ * 
+ * 	PreficClause corresponds to a statement that combines other statements with one of the four operators. 
+ * 
+ * 	PreficClause <- (Operator 
+ * 						Clause+
+ * 					)
+ * 
+ * 
+ *
+ */
 public class PrefixClause extends Clause {
 
-	private Operator operator;
-	private EQLOperator eqlOperator;
+	private Operator operator;			// the operator: or, and, not, prox
+	private EQLOperator eqlOperator;	// the EQL operator
 	
-	private List<Clause> clauses = new ArrayList<Clause>();
-
-	private boolean relaxed = false;
+	private List<Clause> clauses = new ArrayList<Clause>();	// the sub-clauses of that prefix clause
 	
 	public Operator getOperator() {
 		return operator;
@@ -40,6 +51,9 @@ public class PrefixClause extends Clause {
 		return clauses.get(index);
 	}
 	
+	/*
+	 * Get only search clauses
+	 */
 	public List<SearchClause> getSearchClause() {
 		 List<SearchClause> searchClauses = new ArrayList<SearchClause>();
 		 for(Clause clause : clauses) {
@@ -70,14 +84,6 @@ public class PrefixClause extends Clause {
 		buffer.append(StringUtils.join(clauses, " "));
 		buffer.append(")");
 		return buffer.toString();
-	}
-
-	public boolean isRelaxed() {
-		return relaxed;
-	}
-
-	public void setRelaxed(boolean relaxed) {
-		this.relaxed = relaxed;
 	}
 	
 }

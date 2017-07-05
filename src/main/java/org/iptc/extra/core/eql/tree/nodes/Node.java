@@ -7,6 +7,7 @@ import java.util.List;
  * @author manosetro
  *
  *	Node class represents a single node in the syntax tree.
+ *	Node class is extended by any other class in the syntax tree.
  *	
  */
 public abstract class Node {

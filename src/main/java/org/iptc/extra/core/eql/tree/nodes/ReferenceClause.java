@@ -1,15 +1,28 @@
 package org.iptc.extra.core.eql.tree.nodes;
 
-import org.iptc.extra.core.eql.SyntaxTree;
+import org.iptc.extra.core.eql.tree.SyntaxTree;
 import org.iptc.extra.core.types.Rule;
 
+/**
+ * 
+ * @author manos schinas
+ * 
+ * 	A reference clause corresponds to another referenced rule 
+ * 
+ * 	Example:
+ * 	(or	
+ * 		(title any "term1 term2")
+ * 		(@ref == 5954d2231bac0c2f382b7ca5)
+ * 	)
+ *
+ */
 public class ReferenceClause extends Clause {
 
-	private String ruleId;
+	private String ruleId;	// the id of the referenced rule
 
-	private Rule rule;
+	private Rule rule;	// the referenced rule
 	
-	private SyntaxTree ruleSyntaxTree;
+	private SyntaxTree ruleSyntaxTree;	// the syntax tree of the referenced rule
 	
 	
 	public String getRuleId() {

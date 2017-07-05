@@ -1,4 +1,4 @@
-package org.iptc.extra.core.eql;
+package org.iptc.extra.core.eql.tree;
 
 import java.util.ArrayList;
 import java.util.List;

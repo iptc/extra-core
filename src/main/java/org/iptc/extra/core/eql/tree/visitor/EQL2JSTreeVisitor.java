@@ -1,6 +1,6 @@
 package org.iptc.extra.core.eql.tree.visitor;
 
-import org.iptc.extra.core.eql.SyntaxTree;
+import org.iptc.extra.core.eql.tree.SyntaxTree;
 import org.iptc.extra.core.eql.tree.nodes.Clause;
 import org.iptc.extra.core.eql.tree.nodes.CommentClause;
 import org.iptc.extra.core.eql.tree.nodes.Index;

@@ -1,5 +1,12 @@
 package org.iptc.extra.core.eql.tree.nodes;
 
+/**
+ * 
+ * @author manos schinas
+ * 
+ *	Operator node that can take 4 values: or, and, prox, not.
+ *
+ */
 public class Operator extends Modified  {
 
 	private String operator; 

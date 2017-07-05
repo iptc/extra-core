@@ -12,7 +12,7 @@ import org.elasticsearch.index.query.MultiMatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.elasticsearch.index.query.RangeQueryBuilder;
-import org.iptc.extra.core.eql.SyntaxTree;
+import org.iptc.extra.core.eql.tree.SyntaxTree;
 import org.iptc.extra.core.eql.tree.extra.EQLOperator;
 import org.iptc.extra.core.eql.tree.nodes.Clause;
 import org.iptc.extra.core.eql.tree.nodes.CommentClause;
@@ -163,6 +163,18 @@ public class EQL2HighlightVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 	
 	private QueryBuilder searchClausetoES(String index, Relation relation, SearchTerm searchTerm) {
 		
+		if(index.equals("text_content")) {
+			BoolQueryBuilder booleanQb = boolQuery();
+			for(String field : schema.getTextualFieldNames()) {
+				QueryBuilder fieldQb = searchClausetoES(field, relation, searchTerm);
+				if(fieldQb != null) {
+					booleanQb.should(fieldQb);
+				}
+			}
+			
+			return booleanQb;
+		}
+	
 		boolean hasWildcards = searchTerm.isRegexp();
 		
 		String query = searchTerm.getSearchTerm();
@@ -201,8 +213,7 @@ public class EQL2HighlightVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			MatchQueryBuilder queryBuilder = matchQuery(index, query);
 			queryBuilder.operator(org.elasticsearch.index.query.Operator.AND);	
 				
-			return queryBuilder;
-				
+			return queryBuilder;	
 		}
 		else if (relation.is("adj")) {
 			if(relation.hasModifier("stemming")) {
@@ -248,8 +259,17 @@ public class EQL2HighlightVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		if(relation.is("any") || relation.is("=") || relation.is("all")) {
 			query = StringUtils.join(searchTerm.getTerms(), "");
 			QueryStringQueryBuilder queryBuilder = queryStringQuery("/" + query + "/");
-			queryBuilder.field(index);
+			
 			queryBuilder.analyzeWildcard(true);
+			
+			if(index.equals("")) {
+				for(String field : schema.getTextualFieldNames()) {
+					queryBuilder.field(field);
+				}
+			}
+			else {
+				queryBuilder.defaultField(index);
+			}
 			
 			if(relation.is("all")) {
 				queryBuilder.defaultOperator(org.elasticsearch.index.query.Operator.AND);

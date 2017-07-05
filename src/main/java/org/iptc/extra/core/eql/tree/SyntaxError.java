@@ -1,4 +1,4 @@
-package org.iptc.extra.core.eql;
+package org.iptc.extra.core.eql.tree;
 
 import org.antlr.v4.runtime.Token;
 

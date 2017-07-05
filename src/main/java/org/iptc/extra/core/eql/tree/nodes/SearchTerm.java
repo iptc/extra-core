@@ -5,13 +5,26 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
+/**
+ * 
+ * 	@author manos schinas
+ *	
+ *	Part of search clauses:
+ *
+ * 	Index		Relation		SearchTerm
+ *	|			|				|
+ *	title 		any 			"term1 term2"
+ *	title 		any 			"\$[0-9]\s+(million|billion)?"
+ */
 public class SearchTerm extends Node {
 	
+	// regular expression characters 
 	private static String[] regexpCharacters =  {".", "+", "|", "{", "}", "[", "]", "(", ")", "\"", "\\"};
 	
+	// wildcard characters 
 	private static String[] wildcards =  {"+", "*"};
 	
-	private List<String> terms = new ArrayList<String>();
+	private List<String> terms = new ArrayList<String>();	// terms of the search term 
 
 	public SearchTerm() {
 		
@@ -33,6 +46,9 @@ public class SearchTerm extends Node {
 		this.terms = terms;
 	}
 	
+	/*
+	 * Returns a representation of search term by concatenating single terms 
+	 */
 	public String getSearchTerm() {
 		String searchTerm = StringUtils.join(terms, " ");
 		if(searchTerm != null && searchTerm.contains("/")) {
@@ -42,6 +58,9 @@ public class SearchTerm extends Node {
 		return searchTerm;
 	}
 
+	/*
+	 * Returns a representation of search term by concatenating single terms 
+	 */
 	public String getQueryString(String prefix) {
 		List<String> queryParts = new ArrayList<String>();
 		for(String term : terms) {

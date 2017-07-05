@@ -14,6 +14,8 @@ package org.iptc.extra.core.eql.tree.nodes;
  */
 public class CommentClause extends Clause {
 
+	protected String comment;
+	
 	public CommentClause() {
 		
 	}
@@ -21,8 +23,6 @@ public class CommentClause extends Clause {
 	public CommentClause(String comment) {
 		this.comment = comment;
 	}
-
-	protected String comment;
 	
 	public String getComment() {
 		return comment;

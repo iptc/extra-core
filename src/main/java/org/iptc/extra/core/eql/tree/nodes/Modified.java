@@ -9,10 +9,18 @@ import java.util.Map;
  * 
  * @author manos schinas
  *
+ * Modified class represents nodes in the syntax tree that can be modified. 
+ * There are two objects that can be modified: operators (org.iptc.extra.core.eql.tree.nodes.Operator) 
+ * and relations (org.iptc.extra.core.eql.tree.nodes.Relation)
+ * 
+ * 
+ *  Example: prox/unit=word/distance>2
+ *	Operator prox is modified by two modifiers unit=word and distance>2
+ *	These two modifiers are kept into modifiersMap
  *
  */
 public class Modified extends Node {
-
+	
 	protected Map<String, Modifier> modifiersMap = new HashMap<String, Modifier>();
 	
 	public List<Modifier> getModifiers() {
