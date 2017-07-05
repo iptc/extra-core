@@ -50,11 +50,11 @@ import static org.elasticsearch.index.query.QueryBuilders.*;
  */
 public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 	
-	private String indexSuffix = "";
+	private String indexSuffix = "";		// suffix on a field used to target other versions of the field: e.g. title -> title_sentences
 	
-	private boolean spanEnabled = false;
+	private boolean spanEnabled = false;	// when enabled, the elastic search query is a span query
 	
-	private Schema schema;
+	private Schema schema;					// the schema used to map EQL to ES
 	
 	public EQL2ESQueryVisitor() {
 		
@@ -67,65 +67,66 @@ public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 	@Override
 	public QueryBuilder visitPrefixClause(PrefixClause prefixClause) {
 		
-		EQLOperator extraOperator = prefixClause.getEQLOperator();
-	
-		if(extraOperator == EQLOperator.AND) {
+		EQLOperator eqlOperator = prefixClause.getEQLOperator();
+		
+		// check EQL operator
+		if(eqlOperator == EQLOperator.AND) {
 			return andToES(prefixClause);
 		}
 		
-		if(extraOperator == EQLOperator.OR) {
+		if(eqlOperator == EQLOperator.OR) {
 			return orToES(prefixClause);
 		}
 		
-		if(extraOperator == EQLOperator.NOT) {
+		if(eqlOperator == EQLOperator.NOT) {
 			return notToES(prefixClause);
 		}
 		
-		if(extraOperator == EQLOperator.MINIMUM) {
+		if(eqlOperator == EQLOperator.MINIMUM) {
 			return minimumToES(prefixClause);
 		}
 		
-		if(extraOperator == EQLOperator.SENTENCE) {
+		if(eqlOperator == EQLOperator.SENTENCE) {
 			return sentenceToES(prefixClause);
 		}
 
-		if(extraOperator == EQLOperator.NOT_IN_SENTENCE) {
+		if(eqlOperator == EQLOperator.NOT_IN_SENTENCE) {
 			return notInSentenceToES(prefixClause);
 		}
 		
-		if(extraOperator == EQLOperator.PARAGRAPH) {
+		if(eqlOperator == EQLOperator.PARAGRAPH) {
 			return paragraphToES(prefixClause);
 		}
 		
-		if(extraOperator == EQLOperator.NOT_IN_PARAGRAPH) {
+		if(eqlOperator == EQLOperator.NOT_IN_PARAGRAPH) {
 			return notInParagraphToES(prefixClause);
 		}
 		
-		if(extraOperator == EQLOperator.DISTANCE) {
+		if(eqlOperator == EQLOperator.DISTANCE) {
 			return distanceToES(prefixClause, false);
 		}
 		
-		if(extraOperator == EQLOperator.NOT_WITHIN_DISTANCE) {
+		if(eqlOperator == EQLOperator.NOT_WITHIN_DISTANCE) {
 			return notWithiDistanceToES(prefixClause);
 		}
 		
-		if(extraOperator == EQLOperator.MAXIMUM_OCCURRENCE) {
+		if(eqlOperator == EQLOperator.MAXIMUM_OCCURRENCE) {
 			return occurenceToES(prefixClause);
 		}
 
-		if(extraOperator == EQLOperator.MINIMUM_OCCURRENCE) {
+		if(eqlOperator == EQLOperator.MINIMUM_OCCURRENCE) {
 			return occurenceToES(prefixClause);
 		}
 		
-		if(extraOperator == EQLOperator.ORDER) {
+		if(eqlOperator == EQLOperator.ORDER) {
 			return orderToES(prefixClause);
 		}
 		
-		if(extraOperator == EQLOperator.ORDER_AND_DISTANCE) {
+		if(eqlOperator == EQLOperator.ORDER_AND_DISTANCE) {
 			return distanceToES(prefixClause, true);
 		}
 
-		if(extraOperator == EQLOperator.NOT_IN_PHRASE) {
+		if(eqlOperator == EQLOperator.NOT_IN_PHRASE) {
 			return notInPhraseToES(prefixClause);
 		}
 		
@@ -275,7 +276,14 @@ public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			List<QueryBuilder> mustNotClauses = new ArrayList<QueryBuilder>();
 			for(Clause clause : childrenClauses) {
 				if(EQLOperator.isEQLOperatorClause(clause, EQLOperator.NOT)) {
-					mustNotClauses.addAll(getChildrenClausesQueries((PrefixClause) clause));
+					PrefixClause notClause = (PrefixClause) clause;
+					for(Clause notChild : notClause.getClauses()) {
+						QueryBuilder queryBuilder = visit(notChild);
+						if(queryBuilder == null) {
+							continue;
+						}
+						mustNotClauses.add(queryBuilder);
+					}
 				}
 				else {
 					QueryBuilder queryBuilder = visit(clause);
@@ -350,7 +358,7 @@ public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 				return queryBuilder;
 			}
 			else {
-				// Sub-statement are a mix of search clauses and other prefic clauses
+				// Sub-statement are a mix of search clauses and other prefix clauses
 				BoolQueryBuilder booleanQb = boolQuery();
 				List<QueryBuilder> clausesQueries = getClausesQueries(childrenClauses);
 				if(clausesQueries.isEmpty()) {
@@ -365,27 +373,33 @@ public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		}
 	}
 	
+	/*
+	 * or/countunique>N
+	 */
 	private QueryBuilder minimumToES(PrefixClause prefixClause) {
-		QueryBuilder queryBuilder = orToES(prefixClause);
+		
+		QueryBuilder queryBuilder = orToES(prefixClause);	// get OR query
 		if(queryBuilder == null) {
 			return null;
 		}
 		
 		Operator operator = prefixClause.getOperator();
 		Modifier modifier = operator.getModifier("countunique");
-		Integer mimimum = Integer.parseInt(modifier.getValue());
+		Integer minimumShouldMatch = Integer.parseInt(modifier.getValue());
 		if(modifier.isComparitorGT()) {
-			mimimum += 1;
+			// if comparitor is >= then set minimumShouldMatch to minimumShouldMatch + 1
+			minimumShouldMatch += 1;
 		}
 		
+		// Set minimumShouldMatch parameter
 		if(queryBuilder instanceof QueryStringQueryBuilder) {
-			((QueryStringQueryBuilder) queryBuilder).minimumShouldMatch(mimimum.toString());
+			((QueryStringQueryBuilder) queryBuilder).minimumShouldMatch(minimumShouldMatch.toString());
 		}
 		else if (queryBuilder instanceof BoolQueryBuilder) {
-			((BoolQueryBuilder) queryBuilder).minimumShouldMatch(mimimum);
+			((BoolQueryBuilder) queryBuilder).minimumShouldMatch(minimumShouldMatch);
 		}
 		else if(queryBuilder instanceof MultiMatchQueryBuilder) {
-			((MultiMatchQueryBuilder) queryBuilder).minimumShouldMatch(mimimum.toString());
+			((MultiMatchQueryBuilder) queryBuilder).minimumShouldMatch(minimumShouldMatch.toString());
 		}
 		
 		return queryBuilder;
@@ -393,15 +407,16 @@ public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 	
 	private BoolQueryBuilder notToES(PrefixClause prefixClause) {
 		
-		List<Clause> childrenClauses = prefixClause.getClauses();
-		BoolQueryBuilder booleanQb = boolQuery();
-		List<QueryBuilder> clausesQueries = getClausesQueries(childrenClauses);
-		if(clausesQueries.isEmpty()) {
+		BoolQueryBuilder booleanQb = boolQuery();	// create boolean query builder
+		List<QueryBuilder> childrenQueries = getClausesQueries(prefixClause.getClauses());
+		if(childrenQueries.isEmpty()) {
+			// there is no child query, return null
 			return null;
 		}
 		
-		for(QueryBuilder stqb : clausesQueries) {
-			booleanQb.mustNot(stqb);
+		for(QueryBuilder childQuery : childrenQueries) {
+			// child query must not match
+			booleanQb.mustNot(childQuery);
 		}	
 		return booleanQb;
 	}
@@ -437,7 +452,7 @@ public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			BoolQueryBuilder booleanQb = boolQuery();
 			if(indices.size() == 1) {
 				for(SearchClause searchClause : searchClauses) {
-					QueryBuilder clauseQb = searchClausetoES(index + ".paragraph", searchClause.getRelation(), searchClause.getSearchTerm());
+					QueryBuilder clauseQb = searchClausetoElasticSearchQuery(index + ".paragraph", searchClause.getRelation(), searchClause.getSearchTerm());
 					if(clauseQb != null) {
 						booleanQb.must(clauseQb);
 					}
@@ -450,7 +465,7 @@ public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			else {
 				Relation relation = new Relation("="); 
 				for(SearchClause searchClause : searchClauses) {
-					QueryBuilder clauseQueryBuilder = searchClausetoES(index + ".paragraph", relation, searchClause.getSearchTerm());
+					QueryBuilder clauseQueryBuilder = searchClausetoElasticSearchQuery(index + ".paragraph", relation, searchClause.getSearchTerm());
 					if(clauseQueryBuilder != null) {
 						booleanQb.must(clauseQueryBuilder);
 					}
@@ -508,7 +523,7 @@ public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		Set<String> indices = TreeUtils.getIndices(prefixClause);
 		
 		if(indices.size() > 1) {
-			// the operator has clauses with more than one indices specified 
+			// the operator has clauses with more than one indices specified - cannot mix 
 			return null;
 		}
 		
@@ -533,7 +548,7 @@ public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			BoolQueryBuilder booleanQb = boolQuery();
 			if(indices.size() == 1) {
 				for(SearchClause searchClause : searchClauses) {
-					QueryBuilder clauseQueryBuilder = searchClausetoES(index + ".sentence", searchClause.getRelation(), searchClause.getSearchTerm());
+					QueryBuilder clauseQueryBuilder = searchClausetoElasticSearchQuery(index + ".sentence", searchClause.getRelation(), searchClause.getSearchTerm());
 					if(clauseQueryBuilder != null) {
 						booleanQb.must(clauseQueryBuilder);
 					}
@@ -544,7 +559,7 @@ public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			else {
 				Relation relation = new Relation("="); 
 				for(SearchClause searchClause : searchClauses) {
-					QueryBuilder clauseQueryBuilder = searchClausetoES(index + ".sentence", relation, searchClause.getSearchTerm());
+					QueryBuilder clauseQueryBuilder = searchClausetoElasticSearchQuery(index + ".sentence", relation, searchClause.getSearchTerm());
 					if(clauseQueryBuilder != null) {
 						booleanQb.must(clauseQueryBuilder);
 					}
@@ -741,6 +756,9 @@ public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		return null;
 	}
 	
+	/*
+	 * Iterate over a list of clauses anf return a list of Elastic Search QueryBuilder objects
+	 */
 	private List<QueryBuilder> getClausesQueries(List<Clause> clauses) {
 		List<QueryBuilder> clausesQueries = new ArrayList<QueryBuilder>();
 		for(Clause clause : clauses) {
@@ -753,23 +771,10 @@ public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		return clausesQueries;
 	}
 	
-	private List<QueryBuilder> getChildrenClausesQueries(PrefixClause prefixClause) {
-		List<Clause> childrenClauses = prefixClause.getClauses();
-		List<QueryBuilder> clausesQueries = new ArrayList<QueryBuilder>();
-		for(Clause clause : childrenClauses) {
-			QueryBuilder queryBuilder = visit(clause);
-			if(queryBuilder == null) {
-				continue;
-			}
-			clausesQueries.add(queryBuilder);
-		}
-		return clausesQueries;
-	}
-	
 	@Override
 	public QueryBuilder visitSearchClause(SearchClause searchClause) {
 		if(spanEnabled) {
-			return searchClausetoSpan(searchClause);
+			return searchClausetoSpanQuery(searchClause);
 		}
 		else {
 			if(searchClause.hasIndex()) {
@@ -778,7 +783,7 @@ public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 				SearchTerm searchTerm = searchClause.getSearchTerm();
 		
 				String indexName = index.getName() + indexSuffix;
-				return searchClausetoES(indexName, relation, searchTerm);
+				return searchClausetoElasticSearchQuery(indexName, relation, searchTerm);
 			}
 			else {
 				QueryBuilder qb = visitChildren(searchClause);
@@ -786,25 +791,14 @@ public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			}	
 		}
 	}
-
-	@Override
-	public QueryBuilder visitReferenceClause(ReferenceClause referenceClause) {
-		
-		SyntaxTree syntaxTree = referenceClause.getRuleSyntaxTree();
-		if(syntaxTree != null && !syntaxTree.hasErrors() && syntaxTree.getRootNode() != null) {
-			return visit(syntaxTree.getRootNode());
-		}
-		
-		return null;
-	}
 	
-	private QueryBuilder searchClausetoES(String index, Relation relation, SearchTerm searchTerm) {
+	private QueryBuilder searchClausetoElasticSearchQuery(String index, Relation relation, SearchTerm searchTerm) {
 		
 		boolean isRegex = searchTerm.isRegexp();
 		
 		String query = searchTerm.getSearchTerm();
 		if(isRegex && !relation.hasModifier("literal")) {
-			return searchClauseWithRegex(index, relation, searchTerm);
+			return searchClauseToRegexQuery(index, relation, searchTerm);
 		}
 		
 		if(relation.is("any") || relation.is("=")) {
@@ -890,7 +884,7 @@ public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		return null;	
 	}
 	
-	private SpanQueryBuilder searchClausetoSpan(SearchClause searchClause) {
+	private SpanQueryBuilder searchClausetoSpanQuery(SearchClause searchClause) {
 		
 		SearchTerm searchTerm = searchClause.getSearchTerm();
 		String query = searchTerm.getSearchTerm();
@@ -984,7 +978,7 @@ public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		return null;
 	}
 	
-	private QueryBuilder searchClauseWithRegex(String index, Relation relation, SearchTerm searchTerm) {
+	private QueryBuilder searchClauseToRegexQuery(String index, Relation relation, SearchTerm searchTerm) {
 		
 		String query = searchTerm.getSearchTerm();
 		
@@ -1017,32 +1011,44 @@ public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		return null;
 	}
 	
+	/*
+	 * SearchTerm is visited in cases that there is no defined index and relation.
+	 * 
+	 */
 	@Override
 	public QueryBuilder visitSearchTerm(SearchTerm searchTerm) {
 		if(searchTerm.isRegexp()) {
+			// search term is a regexp, thus regexp elastic search query is used
 			return regexpQuery("text_content", searchTerm.getRegexp(false));
 		}
 		else {
 			if(searchTerm.hasWildCards()) {
+				// search term has wild-cards, thus enable wildcards in query string builder
 				QueryStringQueryBuilder queryBuilder = queryStringQuery(searchTerm.getQueryString("+")).analyzeWildcard(true);
 				queryBuilder.enablePositionIncrements(false);
 	
 				if(schema == null || !indexSuffix.equals("")) {
-					queryBuilder.field("text_content" + indexSuffix);
+					// target text_content
+					queryBuilder.defaultField("text_content" + indexSuffix);
 				}
 				else {
+					// target every textual field in the schema
 					for(String field : schema.getTextualFieldNames()) {
 						queryBuilder.field(field);
 					}
 				}
+				
 				return queryBuilder;
 			}
 			else {
 				QueryBuilder qb;
 				if(schema == null || !indexSuffix.equals("")) {
-					qb = matchQuery("text_content" + indexSuffix, searchTerm.getSearchTerm()).operator(org.elasticsearch.index.query.Operator.AND);
+					// schema is not defined, thus text_content field is used
+					qb = matchQuery("text_content" + indexSuffix, searchTerm.getSearchTerm())
+							.operator(org.elasticsearch.index.query.Operator.AND);
 				}
 				else {
+					// schema is defined, thus use a multi-match query in elastic search 
 					Set<String> fields = schema.getTextualFieldNames();
 					String[] fieldNames = fields.toArray(new String[fields.size()]);
 				
@@ -1052,6 +1058,17 @@ public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 				return qb;
 			}
 		}
+	}
+	
+	@Override
+	public QueryBuilder visitReferenceClause(ReferenceClause referenceClause) {
 		
+		SyntaxTree syntaxTree = referenceClause.getRuleSyntaxTree();
+		if(syntaxTree != null && !syntaxTree.hasErrors() && syntaxTree.getRootNode() != null) {
+			// visit root node of referenced rule
+			return visit(syntaxTree.getRootNode());
+		}
+		
+		return null;
 	}
 }

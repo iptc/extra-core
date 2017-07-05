@@ -17,12 +17,12 @@ import org.iptc.extra.core.eql.tree.nodes.SearchClause;
  *	while adds newlines and tab characters to pretify it. 
  *
  */
-public class PretifyVisitor extends SyntaxTreeVisitor<String> {
+public class EQLPretifierVisitor extends SyntaxTreeVisitor<String> {
 	
 	private String newline;
 	private String tab;
 
-	public PretifyVisitor(String newline, String tab) {
+	public EQLPretifierVisitor(String newline, String tab) {
 		this.newline = newline;
 		this.tab = tab;
 	}

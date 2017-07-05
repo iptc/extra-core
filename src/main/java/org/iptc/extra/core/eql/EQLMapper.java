@@ -6,7 +6,7 @@ import org.iptc.extra.core.eql.tree.visitor.EQL2ESQueryVisitor;
 import org.iptc.extra.core.eql.tree.visitor.EQL2HTMLVisitor;
 import org.iptc.extra.core.eql.tree.visitor.EQL2HighlightVisitor;
 import org.iptc.extra.core.eql.tree.visitor.EQL2JSTreeVisitor;
-import org.iptc.extra.core.eql.tree.visitor.PretifyVisitor;
+import org.iptc.extra.core.eql.tree.visitor.EQLPretifierVisitor;
 import org.iptc.extra.core.types.Schema;
 
 /**
@@ -61,7 +61,7 @@ public class EQLMapper {
 			return null;
 		}
 	
-		PretifyVisitor visitor = new PretifyVisitor(newline, tab);
+		EQLPretifierVisitor visitor = new EQLPretifierVisitor(newline, tab);
 		return visitor.visit(root);
 	}
 	

@@ -68,6 +68,22 @@ public class EQLValidator extends SyntaxTreeVisitor<List<ErrorMessageNode>> {
 				}
 			}
 			
+			int stemmedClauses = 0;
+			Set<SearchClause> searchClauses = TreeUtils.getSearchClauses(prefixClause);
+			for(SearchClause sc : searchClauses) {
+				if(sc.getRelation() != null && sc.getRelation().hasModifier("stemming")) {
+					stemmedClauses++;
+				}
+			}
+
+			if(stemmedClauses > 0 && searchClauses.size() != stemmedClauses) {
+				ErrorMessageNode node = new ErrorMessageNode();
+				node.setErrorMessage(operator.toString() + " (" + extraOperator + ") children mixes stemming and non-stemming.");
+			
+				invalidNodes.add(node);
+				operator.setValid(false);
+			}
+			
 			Set<String> indices = TreeUtils.getIndices(prefixClause);
 			Set<SearchClause> searchTermClauses = TreeUtils.getSearchTermClauses((prefixClause));
 			
