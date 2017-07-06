@@ -22,7 +22,7 @@ import edu.stanford.nlp.util.CoreMap;
 public class TextUtils {
 	
 	/*
-	 * Remove HTML tags and redundant whitespaces for a text
+	 * Remove HTML tags and redundant white-spaces for a text
 	 */
 	public static String clean(String txt) {
 		
