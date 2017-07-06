@@ -1,6 +1,6 @@
 // Generated from /home/manosetro/IdeaProjects/cql-parser/parser/Eql.g4 by ANTLR 4.5.3
 
-package org.iptc.extra.core.eql.parsers;
+package org.iptc.extra.core.eql.antlr;
 
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 

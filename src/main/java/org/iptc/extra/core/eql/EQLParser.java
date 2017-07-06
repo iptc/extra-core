@@ -13,11 +13,11 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.lang3.StringUtils;
-import org.iptc.extra.core.eql.parsers.EqlBaseVisitor;
-import org.iptc.extra.core.eql.parsers.EqlLexer;
-import org.iptc.extra.core.eql.parsers.EqlParser;
-import org.iptc.extra.core.eql.parsers.EqlParser.ModifierContext;
-import org.iptc.extra.core.eql.parsers.EqlParser.StatementContext;
+import org.iptc.extra.core.eql.antlr.EqlBaseVisitor;
+import org.iptc.extra.core.eql.antlr.EqlLexer;
+import org.iptc.extra.core.eql.antlr.EqlParser;
+import org.iptc.extra.core.eql.antlr.EqlParser.ModifierContext;
+import org.iptc.extra.core.eql.antlr.EqlParser.StatementContext;
 import org.iptc.extra.core.eql.tree.SyntaxError;
 import org.iptc.extra.core.eql.tree.SyntaxTree;
 import org.iptc.extra.core.eql.tree.extra.EQLOperator;
@@ -41,7 +41,9 @@ import org.iptc.extra.core.eql.tree.nodes.SearchTerm;
  * Extra Query Language (EQL) parser built upon Antlr 
  * 
  * That class is used to parse a rule expressed as an EQL string.
- * Generates the corresponding syntax tree. 
+ * Generates the corresponding syntax tree (org.iptc.extra.core.eql.tree.SyntaxTree). 
+ * 
+ * This class is a wrapper of the Antlr parser in the package org.iptc.extra.core.eql.antlr
  * 
  * 
  */
