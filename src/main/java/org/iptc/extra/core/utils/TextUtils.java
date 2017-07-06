@@ -26,7 +26,8 @@ public class TextUtils {
 	 */
 	public static String clean(String txt) {
 		
-		txt = txt.replaceAll("<!--.*?-->", " ").replaceAll("<[^>]+>", " ");
+		//txt = txt.replaceAll("<!--.*?-->", " ").replaceAll("<[^>]+>", " ");
+		txt = Jsoup.parse(txt).text();
 		
 		txt = StringEscapeUtils.unescapeHtml4(txt);
 		txt = StringUtils.normalizeSpace(txt);
