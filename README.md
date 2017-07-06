@@ -38,6 +38,20 @@ The basic way to way combine search clauses is:
 
 **booleanClause = (booleanOperator searchClause+)**
 
+Also boolean operators can be used to combine other boolean clauses, or boolean with searchClauses. 
+
+Boolean operators can be modified in a similar way as relations:  
+
+**booleanOperator = booleanName (/modifierName comparator value)* **
+
+For example:
+
+	- prox/unit=word/distance>4
+	- prox/unit=sentence/distance<2
+	- prox/unit=paragraph/distance<=1
+	- or/count>4
+
+
 
 ## Usage
 
