@@ -47,7 +47,7 @@ Also boolean operators can be used to combine other boolean clauses, or boolean 
 
 Boolean operators can be modified in a similar way as relations:  
 
-**booleanOperator = booleanName (/modifierName comparator value)* **
+**booleanOperator = booleanName (/modifierName comparator value) **
 
 For example:
 
@@ -121,18 +121,18 @@ SyntaxTreeVisitor visitor = new SyntaxTreeVisitor();
 visitor.visit(root);
 ```
 
-The change that functionality, e.g. to perform an operation in each visited node of the syntax tree, extend org.iptc.extra.core.eql.tree.visitor.SyntaxTreeVisitor<T>.
+The change that functionality, e.g. to perform an operation in each visited node of the syntax tree, extend `java org.iptc.extra.core.eql.tree.visitor.SyntaxTreeVisitor<T>`.
 
 For example the following class extends the default behavior of SyntaxTreeVisitor by aggregating the Index names across all Index nodes in the syntax tree:
 
 ```java
 public class MyVisitor extends SyntaxTreeVisitor<Set<String>> {
 
-	// implement visit method for Index nodes
+	// override visit method for Index nodes
 	@Override
 	public Set<String> visitIndex(Index index) {
 		Set<String> set = new HashSet<String>();
-		return set.add(idnex.getIndex());
+		return set.add(index.getIndex());
 	}
 	
 	protected Set<String> aggregateResult(Set<String> aggregate, Set<String> nextResult) {
@@ -149,7 +149,7 @@ Although extra-core can be used as a dependency in any Java project, it's recomm
 
 See the other repositories of the IPTC EXTRA project:
 * [extra-ext](https://github.com/iptc/extra-ext)
-* [extra-ext](https://github.com/iptc/extra-rules)
+* [extra-rules](https://github.com/iptc/extra-rules)
 
 
 ## Authors
