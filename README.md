@@ -56,8 +56,6 @@ For example:
 	- prox/unit=paragraph/distance<=1
 	- or/count>4
 
-
-
 ## Usage
 
 ### Get the artifacts
@@ -70,6 +68,31 @@ To use extra-core project add the following dependency to your `pom.xml`:
   	<artifactId>extra-core</artifactId>
 	<version>0.1.1-SNAPSHOT</version>
 </dependency>
+```
+
+### Retrieval and Creation of Rules, Schemas, Taxonomies and Topics
+
+To support serialization/deserialization from/to MongoDB:
+ 
+```java
+MongoClient mongoClient = new MongoClient("localhost", 27017);
+Morphia morphia = new Morphia();
+Datastore datastore = morphia.createDatastore(mongoClient, database);
+
+RulesDAO rulesDAO = new RulesDAO(datastore);
+
+Rule rule = rulesDAO.get("595a913da7b11b0001cae336");
+String eqlQuery = rule.getQuery();
+
+SchemasDAO schemasDAO = new SchemasDAO(datastore);
+
+Schema schema = new Schema();
+schema.setName("Test schema");
+schema.addField("title", true, true, false);
+schema.addField("body", true, true, true);
+
+schemasDAO.save(schema);
+
 ```
 
 ### Parse, process and transformation of EQL queries
