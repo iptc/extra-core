@@ -79,19 +79,20 @@ MongoClient mongoClient = new MongoClient("localhost", 27017);
 Morphia morphia = new Morphia();
 Datastore datastore = morphia.createDatastore(mongoClient, database);
 
-RulesDAO rulesDAO = new RulesDAO(datastore);
+RulesDAO rulesDAO = new RulesDAO(datastore);	// initialize a rules dao
 
-Rule rule = rulesDAO.get("595a913da7b11b0001cae336");
-String eqlQuery = rule.getQuery();
+Rule rule = rulesDAO.get("595a913da7b11b0001cae336");	// get rule with id 595a913da7b11b0001cae336
+String eqlQuery = rule.getQuery();						// get the EQL query of the rule
 
-SchemasDAO schemasDAO = new SchemasDAO(datastore);
+SchemasDAO schemasDAO = new SchemasDAO(datastore);	// initialize a schemas dao
 
-Schema schema = new Schema();
-schema.setName("Test schema");
-schema.addField("title", true, true, false);
-schema.addField("body", true, true, true);
+Schema schema = new Schema();	// create a new schema
+schema.setName("Test schema");	// set name of the new schema
 
-schemasDAO.save(schema);
+schema.addField("title", true, true, false);	// add title field textual=true, hasSentences=true, hasParagraphs=false
+schema.addField("body", true, true, true);		// add body field textual=true, hasSentences=true, hasParagraphs=true
+
+schemasDAO.save(schema);	// save the new schema into mongodb
 
 ```
 
@@ -104,7 +105,7 @@ To parse a string containing an EQL query use parse method of EQLParser:
 String eqlQuery = "....";
 
 SyntaxTree tree = EQLParser.parse(eqlQuery);
-Node root = tree..getRootNode();
+Node root = tree.getRootNode();
 
 ```
 
@@ -112,6 +113,36 @@ To transform a syntax tree generated from an EQL query to an Elastic Search quer
 
 ```java
 QueryBuilder esQuery = EQLMapper.toElasticSearchQuery(node, schema);
+```
+
+To perform a depth-first traversal of the syntax tree:
+```java
+SyntaxTreeVisitor visitor = new SyntaxTreeVisitor();		
+visitor.visit(root);
+```
+
+The change that functionality, e.g. to perform an operation in each visited node of the syntax tree, extend org.iptc.extra.core.eql.tree.visitor.SyntaxTreeVisitor<T>.
+
+For example the following class extends the default behavior of SyntaxTreeVisitor by aggregating the Index names across all Index nodes in the syntax tree:
+
+```java
+public class MyVisitor extends SyntaxTreeVisitor<Set<String>> {
+
+	// implement visit method for Index nodes
+	@Override
+	public Set<String> visitIndex(Index index) {
+		Set<String> set = new HashSet<String>();
+		return set.add(idnex.getIndex());
+	}
+	
+	protected Set<String> aggregateResult(Set<String> aggregate, Set<String> nextResult) {
+		return aggregate.addAll(nextResult);
+	}
+	
+	protected Set<String> defaultResult() {
+		return new HashSet<String>;
+	}
+}
 ```
 
 Although extra-core can be used as a dependency in any Java project, it's recommended to use the [integrated framework](https://github.com/iptc/extra-ext) developed on top of extra-core. This framework includes a REST API for the management of rules, schemas, etc but also a web user interface for the development, testing and usage of rules. 
