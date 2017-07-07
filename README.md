@@ -65,27 +65,37 @@ For example:
 To use extra-core project add the following dependency to your `pom.xml`:
 
 ```xml
-	<dependency>
-  		<groupId>org.iptc</groupId>
-       	<artifactId>extra-core</artifactId>
-      	<version>0.1.1-SNAPSHOT</version>
-	</dependency>
+<dependency>
+	<groupId>org.iptc</groupId>
+  	<artifactId>extra-core</artifactId>
+	<version>0.1.1-SNAPSHOT</version>
+</dependency>
 ```
 
 ### Parse, process and transformation of EQL queries
 
+To parse a string containing an EQL query use parse method of EQLParser:
 
 ```java
 
 String eqlQuery = "....";
 
 SyntaxTree tree = EQLParser.parse(eqlQuery);
+Node root = tree..getRootNode();
 
 ```
 
+To transform a syntax tree generated from an EQL query to an Elastic Search query, use EQLMapper:
+
+```java
+QueryBuilder esQuery = EQLMapper.toElasticSearchQuery(node, schema);
+```
+
+Although extra-core can be used as a dependency in any Java project, it's recommended to use the [integrated framework](https://github.com/iptc/extra-ext) developed on top of extra-core. This framework includes a REST API for the management of rules, schemas, etc but also a web user interface for the development, testing and usage of rules. 
+
 See the other repositories of the IPTC EXTRA project:
-* https://github.com/iptc/extra-ext
-* https://github.com/iptc/extra-rules
+* [extra-ext](https://github.com/iptc/extra-ext)
+* [extra-ext](https://github.com/iptc/extra-rules)
 
 
 ## Authors
