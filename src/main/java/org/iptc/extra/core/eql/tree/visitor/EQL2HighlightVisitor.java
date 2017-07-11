@@ -175,13 +175,18 @@ public class EQL2HighlightVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			return booleanQb;
 		}
 	
-		boolean hasWildcards = searchTerm.isRegexp();
+		boolean isRegexp = searchTerm.isRegexp();
+		boolean hasWildcards = searchTerm.hasWildCards();
 		
 		String query = searchTerm.getSearchTerm();
-		if(hasWildcards && !relation.hasModifier("literal")) {
-			return searchClauseWithWildcards(index, relation, searchTerm);
+		if(isRegexp && !relation.hasModifier("literal")) {
+			return regexpSearchClause(index, relation, searchTerm);
 		}
 		
+		if(hasWildcards && !relation.hasModifier("literal")) {
+			return wildcardsSearchClause(index, relation, searchTerm);
+		}
+
 		if(relation.is("any") || relation.is("=")) {
 			if(relation.hasModifier("stemming")) {
 				index = "stemmed_" + index;
@@ -252,7 +257,39 @@ public class EQL2HighlightVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		return null;	
 	}
 	
-	private QueryBuilder searchClauseWithWildcards(String index, Relation relation, SearchTerm searchTerm) {
+	private QueryBuilder wildcardsSearchClause(String index, Relation relation, SearchTerm searchTerm) {
+		
+		String query = searchTerm.getSearchTerm();
+		
+		if(relation.is("any") || relation.is("=") || relation.is("all") || relation.is("adj")) {
+			QueryStringQueryBuilder queryBuilder = queryStringQuery(query);
+			
+			queryBuilder.analyzeWildcard(true);
+			
+			if(index.equals("")) {
+				for(String field : schema.getTextualFieldNames()) {
+					queryBuilder.field(field);
+				}
+			}
+			else {
+				queryBuilder.defaultField(index);
+			}
+			
+			if(relation.is("all") || relation.is("adj")) {
+				queryBuilder.defaultOperator(org.elasticsearch.index.query.Operator.AND);
+			}
+			
+			return queryBuilder;
+		}
+		
+		if(relation.is("==")) {
+			return wildcardQuery(index, query);
+		}
+		
+		return null;
+	}
+	
+	private QueryBuilder regexpSearchClause(String index, Relation relation, SearchTerm searchTerm) {
 		
 		String query = searchTerm.getSearchTerm();
 		

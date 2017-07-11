@@ -876,10 +876,38 @@ public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			}
 			
 			if(searchTerm.hasWildCards() && !isRegex) {
+				
+				List<SpanQueryBuilder> spanQueries = new ArrayList<SpanQueryBuilder>();
+				
+				query = query.toLowerCase();
+				for(String term : query.split("\\s+")) {
+					if(term.contains("*") || term.contains("?")) {
+						MultiTermQueryBuilder qb = (MultiTermQueryBuilder) wildcardQuery(index, term);
+						spanQueries.add(spanMultiTermQueryBuilder(qb));
+					}
+					else {
+						SpanTermQueryBuilder qb = spanTermQuery(index, term);
+						spanQueries.add(qb);
+					}
+				}
+				
+				if(spanQueries.size() > 1) {
+					SpanNearQueryBuilder spanNearQb = spanNearQuery(spanQueries.get(0), 1);
+					for(int i = 1; i < spanQueries.size() ; i++) {
+						spanNearQb.addClause(spanQueries.get(i));
+					}
+					
+					return spanNearQb;
+				}
+				
+				
+				/*
 				return queryStringQuery(query)
-						.defaultOperator(org.elasticsearch.index.query.Operator.AND)
 						.field(index)
+						.defaultOperator(org.elasticsearch.index.query.Operator.AND)
 						.analyzeWildcard(true);
+				*/
+				
 			}
 			
 			return matchPhraseQuery(index, query);
