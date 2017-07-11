@@ -899,15 +899,6 @@ public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 					
 					return spanNearQb;
 				}
-				
-				
-				/*
-				return queryStringQuery(query)
-						.field(index)
-						.defaultOperator(org.elasticsearch.index.query.Operator.AND)
-						.analyzeWildcard(true);
-				*/
-				
 			}
 			
 			return matchPhraseQuery(index, query);
@@ -957,14 +948,33 @@ public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 				
 				String[] queryTerms = query.trim().split("\\s+");
 				if(queryTerms.length > 1) {
-					SpanTermQueryBuilder initialSpan = spanTermQuery(index, queryTerms[0]);
-					SpanOrQueryBuilder spanOr = spanOrQuery(initialSpan);
 					
+					SpanQueryBuilder initialSpan = null;
+					if(queryTerms[0].contains("*") || queryTerms[0].contains("?")) {
+						initialSpan = spanMultiTermQueryBuilder((MultiTermQueryBuilder) wildcardQuery(index, queryTerms[0]));
+					}
+					else {
+						initialSpan = spanTermQuery(index, queryTerms[0]);
+					}
+
+					SpanOrQueryBuilder spanOr = spanOrQuery(initialSpan);
 					for(int i = 1 ; i < queryTerms.length; i++) {
-						spanOr.addClause(spanTermQuery(index, queryTerms[i]));
+						String term = queryTerms[i];
+						if(term.contains("*") || term.contains("?")) {
+							MultiTermQueryBuilder qb = (MultiTermQueryBuilder) wildcardQuery(index, term);
+							spanOr.addClause(spanMultiTermQueryBuilder(qb));
+						}
+						else {
+							spanOr.addClause(spanTermQuery(index, term));
+						}
 					}
 					
 					return spanOr;
+				}
+				
+				if(query.contains("*") || query.contains("?")) {
+					MultiTermQueryBuilder qb = (MultiTermQueryBuilder) wildcardQuery(index, query);
+					return spanMultiTermQueryBuilder(qb);
 				}
 				
 				return spanTermQuery(index, query);
@@ -975,30 +985,74 @@ public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 
 			}
 			else if (relation.is("all")) {
-				MatchQueryBuilder qb = matchQuery(index, query);
-				qb.operator(org.elasticsearch.index.query.Operator.AND);
+				String[] queryTerms = query.trim().split("\\s+");
+				if(queryTerms.length > 1) {
+					SpanQueryBuilder initialSpan = null;
+					if(queryTerms[0].contains("*") || queryTerms[0].contains("?")) {
+						initialSpan = spanMultiTermQueryBuilder((MultiTermQueryBuilder) wildcardQuery(index, queryTerms[0]));
+					}
+					else {
+						initialSpan = spanTermQuery(index, queryTerms[0]);
+					}
+					
+					SpanNearQueryBuilder spanNear = spanNearQuery(initialSpan, Integer.MAX_VALUE);
+					for(int i = 1 ; i < queryTerms.length; i++) {
+						if(queryTerms[i].contains("*") || queryTerms[i].contains("?")) {
+							MultiTermQueryBuilder qb = (MultiTermQueryBuilder) wildcardQuery(index, queryTerms[i]);
+							spanNear.addClause(spanMultiTermQueryBuilder(qb));
+						}
+						else {
+							spanNear.addClause(spanTermQuery(index, queryTerms[i]));
+						}
+					}
+					
+					return spanNear;
+				}
 				
-				return spanMultiTermQueryBuilder((MultiTermQueryBuilder) qb);
+				if(query.contains("*") || query.contains("?")) {
+					MultiTermQueryBuilder qb = (MultiTermQueryBuilder) wildcardQuery(index, query);
+					return spanMultiTermQueryBuilder(qb);
+				}
+				
+				return spanTermQuery(index, query);
 				
 			}
 			else if (relation.is("adj")) {
-				if(relation.hasModifier("regexp")) {
-					
+				
+				if(relation.hasModifier("regexp")) {	
 					RegexpQueryBuilder regexpQb = regexpQuery(index, searchTerm.getRegexp(false));
 					return spanMultiTermQueryBuilder(regexpQb);
 				}
+				
 				String[] queryTerms = query.trim().split("\\s+");
 				if(queryTerms.length > 1) {
-					SpanTermQueryBuilder initialSpan = spanTermQuery(index, queryTerms[0]);
-					SpanNearQueryBuilder spanNear = spanNearQuery(initialSpan, 0);
+					SpanQueryBuilder initialSpan = null;
+					if(queryTerms[0].contains("*") || queryTerms[0].contains("?")) {
+						initialSpan = spanMultiTermQueryBuilder((MultiTermQueryBuilder) wildcardQuery(index, queryTerms[0]));
+					}
+					else {
+						initialSpan = spanTermQuery(index, queryTerms[0]);
+					}
 					
+					SpanNearQueryBuilder spanNear = spanNearQuery(initialSpan, 0);
 					for(int i = 1 ; i < queryTerms.length; i++) {
-						spanNear.addClause(spanTermQuery(index, queryTerms[i]));
+						if(queryTerms[i].contains("*") || queryTerms[i].contains("?")) {
+							MultiTermQueryBuilder qb = (MultiTermQueryBuilder) wildcardQuery(index, queryTerms[i]);
+							spanNear.addClause(spanMultiTermQueryBuilder(qb));
+						}
+						else {
+							spanNear.addClause(spanTermQuery(index, queryTerms[i]));
+						}
 					}
 					
 					return spanNear;
 				}
 				else {
+					if(query.contains("*") || query.contains("?")) {
+						MultiTermQueryBuilder qb = (MultiTermQueryBuilder) wildcardQuery(index, query);
+						return spanMultiTermQueryBuilder(qb);
+					}
+					
 					return spanTermQuery(index, query);
 				}
 	
