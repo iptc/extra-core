@@ -68,7 +68,7 @@ public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 	public QueryBuilder visitPrefixClause(PrefixClause prefixClause) {
 		
 		EQLOperator eqlOperator = prefixClause.getEQLOperator();
-		
+
 		// check EQL operator
 		if(eqlOperator == EQLOperator.AND) {
 			return andToES(prefixClause);
@@ -162,8 +162,12 @@ public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		else {
 			Map<String, List<String>> fieldTerms = new HashMap<String, List<String>>();
 			for(SearchClause searchClause : prefixClause.getSearchClause()) {
+				
 				Relation relation = searchClause.getRelation();
+				
+				// if index is not specified use text_content field
 				String field = (searchClause.getIndex() == null) ? "text_content" : searchClause.getIndex().getName();
+				
 				SearchTerm searchTerm = searchClause.getSearchTerm();
 			
 				String fieldPrefix = "";
@@ -189,6 +193,7 @@ public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		
 			String code = getScriptCode(comparitor, value, fieldTerms);
 			Script script = new Script(code);
+			
 			ScriptQueryBuilder scriptQuery = scriptQuery(script);
 			booleanQb.must(scriptQuery);
 			
@@ -205,10 +210,13 @@ public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			if(terms.isEmpty()) {
 				continue;
 			}
+			
+			String termsArray = StringUtils.join(terms, "', '").replaceAll("-", " ");
+			
 			buffer.append("for (int i = 0; i < doc['" + field + "'].length; ++i) { ");
 			buffer.append("String t = doc['" + field + "'][i]; ");
 			buffer.append("String token = t.substring(0, t.indexOf('_')).trim(); ");
-			buffer.append("def terms = ['" + StringUtils.join(terms, "', '")+ "']; ");
+			buffer.append("def terms = ['" + termsArray + "']; ");
 			buffer.append("if(terms.contains(token)) { ");
 			buffer.append("String f = t.substring(t.indexOf('_') + 1); ");
 			buffer.append("total += Integer.parseInt(f); ");
@@ -751,6 +759,22 @@ public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			SpanNotQueryBuilder distanceQueryBuilder = spanNotQuery(include, exclude);
 
 			return distanceQueryBuilder;
+		}
+		else {
+			List<Clause> clauses = prefixClause.getPrefixOrSearchClause();
+			if(clauses.size() == 2) {
+				if(clauses.get(0) instanceof SearchClause && clauses.get(1) instanceof PrefixClause) {
+					this.spanEnabled = true;
+					SpanQueryBuilder include = (SpanQueryBuilder) visit(clauses.get(0));
+					
+					SpanQueryBuilder exclude = (SpanQueryBuilder) visit(clauses.get(1));
+					
+					this.spanEnabled = false;
+					
+					SpanNotQueryBuilder distanceQueryBuilder = spanNotQuery(include, exclude);
+					return distanceQueryBuilder;
+				}
+			}
 		}
 		
 		return null;

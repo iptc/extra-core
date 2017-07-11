@@ -64,6 +64,19 @@ public class PrefixClause extends Clause {
 		 return searchClauses;
 	}
 	
+	/*
+	 * Get prefix or search clauses
+	 */
+	public List<Clause> getPrefixOrSearchClause() {
+		 List<Clause> validClauses = new ArrayList<Clause>();
+		 for(Clause clause : clauses) {
+			 if(clause instanceof SearchClause || clause instanceof PrefixClause) {
+				 validClauses.add(clause);
+			 }
+		 }
+		 return validClauses;
+	}
+	
 	public void setClauses(List<Clause> clauses) {
 		this.clauses = clauses;
 		
