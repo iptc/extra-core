@@ -46,6 +46,15 @@ public class EQL2HighlightVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			return andToES(prefixClause);
 		}
 		
+		if(EQLOperator.isWordDistanceOperator(extraOperator)) {
+			List<Clause> clauses = prefixClause.getPrefixOrSearchClause();
+			if(clauses.isEmpty()) {
+				return null;
+			}
+			
+			return visit(clauses.get(0));
+		}
+		
 		return orToES(prefixClause);
 	}
 	

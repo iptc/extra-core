@@ -51,6 +51,7 @@ public class EQLValidator extends SyntaxTreeVisitor<List<ErrorMessageNode>> {
 				if(prefixClause.getClauses().size() == 1 && (extraOperator == EQLOperator.SENTENCE || extraOperator == EQLOperator.NOT_IN_SENTENCE ||
 						extraOperator == EQLOperator.PARAGRAPH || extraOperator == EQLOperator.NOT_IN_PARAGRAPH)) {
 					Clause childClause = prefixClause.getClause(0);	
+					
 					if(!(childClause instanceof PrefixClause) || !EQLOperator.isWordDistanceOperator(((PrefixClause) childClause).getEQLOperator())) {
 						ErrorMessageNode node = new ErrorMessageNode();
 						node.setErrorMessage(operator.toString() + " (" + extraOperator + ") has invalid sub-statement. Only distance operators are permitted in single statements.");
