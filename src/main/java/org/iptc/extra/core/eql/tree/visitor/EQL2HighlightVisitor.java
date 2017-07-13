@@ -46,7 +46,7 @@ public class EQL2HighlightVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			return andToES(prefixClause);
 		}
 		
-		if(EQLOperator.isWordDistanceOperator(extraOperator)) {
+		if(extraOperator == EQLOperator.NOT_IN_PHRASE) {
 			List<Clause> clauses = prefixClause.getPrefixOrSearchClause();
 			if(clauses.isEmpty()) {
 				return null;
@@ -335,8 +335,8 @@ public class EQL2HighlightVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		}
 		
 		if(relation.is("adj")) {
-			query = StringUtils.join(searchTerm.getTerms(), "");
-			return regexpQuery(index, query);		
+			query = searchTerm.getRegexp(false);
+			return regexpQuery("raw_" + index, query);		
 		}
 		
 		return null;

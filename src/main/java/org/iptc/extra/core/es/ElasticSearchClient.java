@@ -181,7 +181,12 @@ public class ElasticSearchClient {
 						value = fragments[0].string();
 					}
 				}
-				
+				else if(highlights.containsKey("raw_" + fieldName)) {
+					Text[] fragments = highlights.get("raw_" + fieldName).fragments();
+					if(fragments.length > 0) {
+						value = fragments[0].string();
+					}
+				}				
 				
 				if(schemaField.hasParagraphs) {
 					StructuredTextField bodyField = new StructuredTextField();

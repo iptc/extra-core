@@ -212,12 +212,12 @@ public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 			}
 			
 			String termsArray = StringUtils.join(terms, "', '").replaceAll("-", " ");
+			buffer.append("def " + field + "_terms = ['" + termsArray + "']; ");
 			
 			buffer.append("for (int i = 0; i < doc['" + field + "'].length; ++i) { ");
 			buffer.append("String t = doc['" + field + "'][i]; ");
 			buffer.append("String token = t.substring(0, t.indexOf('_')).trim(); ");
-			buffer.append("def terms = ['" + termsArray + "']; ");
-			buffer.append("if(terms.contains(token)) { ");
+			buffer.append("if(" + field + "_terms.contains(token)) { ");
 			buffer.append("String f = t.substring(t.indexOf('_') + 1); ");
 			buffer.append("total += Integer.parseInt(f); ");
 			buffer.append("} ");
@@ -231,10 +231,13 @@ public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		
 		StringBuffer buffer = new StringBuffer();
 		buffer.append("int total = 0; ");
+		
+		String termsArray = StringUtils.join(terms, "', '").replaceAll("-", " ");
+		buffer.append("def terms = ['" + termsArray + "']; ");
+		
 		buffer.append("for (int i = 0; i < doc['" + field + "'].length; ++i) { ");
 		buffer.append("String t = doc['" + field + "'][i]; ");
 		buffer.append("String token = t.substring(0, t.indexOf('_')); ");
-		buffer.append("def terms = ['" + StringUtils.join(terms, "', '")+ "']; ");
 		buffer.append("if(terms.contains(token)) { ");
 		buffer.append("String f = t.substring(t.indexOf('_') + 1); ");
 		buffer.append("total += Integer.parseInt(f); ");
@@ -1086,12 +1089,19 @@ public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 	
 	private QueryBuilder searchClauseToRegexQuery(String index, Relation relation, SearchTerm searchTerm) {
 		
-		String query = searchTerm.getSearchTerm();
-		
 		if(relation.is("any") || relation.is("=") || relation.is("all")) {
-			query = searchTerm.getRegexp(false);
+			String query = searchTerm.getRegexp(false);
 			QueryStringQueryBuilder queryBuilder = queryStringQuery("/" + query + "/");
-			queryBuilder.field("raw_" + index);
+			
+			if(schema != null && (index == null || index.equals("text_content"))) {
+				for(String field : schema.getTextualFieldNames()) {
+					queryBuilder.field("raw_" + field);
+				}
+			}
+			else {
+				queryBuilder.field("raw_" + index);
+			}
+			
 			queryBuilder.analyzeWildcard(true);
 			
 			if(relation.is("all")) {
@@ -1111,7 +1121,16 @@ public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		}
 		
 		if(relation.is("adj")) {
-			return regexpQuery("raw_" + index, searchTerm.getRegexp(false));			
+			BoolQueryBuilder booleanQb = boolQuery();
+			if(schema != null && (index == null || index.equals("text_content"))) {
+				for(String field : schema.getTextualFieldNames()) {
+					booleanQb.should(
+							regexpQuery("raw_" + field, searchTerm.getRegexp(false))
+						);
+				}
+			}
+			
+			return booleanQb;			
 		}
 		
 		return null;
