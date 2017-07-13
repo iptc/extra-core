@@ -184,7 +184,9 @@ public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 				}
 				
 				if(relation == null || relation.is("=") || relation.is("any")) {
-					terms.addAll(searchTerm.getTerms());
+					for(String term : searchTerm.getTerms()) {
+						terms.add(term.toLowerCase().trim());
+					}
 				}
 				else if(relation.is("adj")) {
 					terms.add(searchTerm.getSearchTerm().toLowerCase().trim());
