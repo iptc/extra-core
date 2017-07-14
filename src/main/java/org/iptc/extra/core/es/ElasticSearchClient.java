@@ -92,6 +92,18 @@ public class ElasticSearchClient {
 		
 	}
 	
+	public Document getDocument(String documentId, String indexName, Schema schema) throws IOException {
+		
+		GetResponse response = client.prepareGet(indexName, "documents", documentId).get();
+		if(!response.isSourceEmpty()) {
+			Document doc = ElasticSearchUtils.sourceToDocument(response.getSourceAsString(), null, schema);
+			
+			return doc;
+		}
+		
+		return null;
+	}
+	
 	public ElasticSearchResponse<Document> findDocuments(QueryBuilder qb, String indexName, int page, int nPerPage) throws IOException {
 		return findDocuments(qb, indexName, page, nPerPage, null, null);
 	}
