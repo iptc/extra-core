@@ -148,8 +148,8 @@ public class MyVisitor extends SyntaxTreeVisitor<Set<String>> {
 Although extra-core can be used as a dependency in any Java project, it's recommended to use the [integrated framework](https://github.com/iptc/extra-ext) developed on top of extra-core. This framework includes a REST API for the management of rules, schemas, etc but also a web user interface for the development, testing and usage of rules. 
 
 See the other repositories of the IPTC EXTRA project:
-* [extra-ext](https://github.com/iptc/extra-ext)
-* [extra-rules](https://github.com/iptc/extra-rules)
+* [extra-ext](https://github.com/iptc/extra-ext) User Interface, API and other extensions of the Core
+* [extra-examples](https://github.com/iptc/extra-examples) Examples developed for the EXTRA Project
 
 
 ## Authors
