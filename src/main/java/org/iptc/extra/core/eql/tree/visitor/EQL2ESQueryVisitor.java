@@ -1123,16 +1123,22 @@ public class EQL2ESQueryVisitor extends SyntaxTreeVisitor<QueryBuilder> {
 		}
 		
 		if(relation.is("adj")) {
-			BoolQueryBuilder booleanQb = boolQuery();
-			if(schema != null && (index == null || index.equals("text_content"))) {
+			if (index == null) {
+				index = "text_content";
+			}
+			
+			if(schema != null && index.equals("text_content")) {
+				BoolQueryBuilder booleanQb = boolQuery();
 				for(String field : schema.getTextualFieldNames()) {
 					booleanQb.should(
 							regexpQuery("raw_" + field, searchTerm.getRegexp(false))
 						);
 				}
+				return booleanQb;	
 			}
 			
-			return booleanQb;			
+
+			return regexpQuery("raw_" + index, searchTerm.getRegexp(false));			
 		}
 		
 		return null;
