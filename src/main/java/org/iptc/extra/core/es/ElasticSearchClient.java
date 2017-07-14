@@ -56,7 +56,7 @@ public class ElasticSearchClient {
 		Schema schema = corpus.getSchema();
 		if(schema != null) {
 			try {
-				XContentBuilder settingBuilder = ElasticSearchUtils.buildSchemaMapping(schema);
+				XContentBuilder settingBuilder = ElasticSearchUtils.buildDocumentMapping(schema);
 				
 				IndicesAdminClient indicesClient = client.admin().indices();
 				indicesClient.prepareCreate(corpus.getId())
@@ -321,38 +321,42 @@ public class ElasticSearchClient {
 		return resp;
 	}
 	
-	public boolean createSchemaPercolateMapping(Schema schema) throws IOException {
+	public boolean createPercolateIndex(Schema schema) throws IOException {
 		
 		IndicesAdminClient indicesClient = client.admin().indices();
 		boolean exists = indicesClient.prepareExists(schema.getId()).execute().actionGet().isExists();
 		if(!exists) {
-			XContentBuilder settingBuilder = ElasticSearchUtils.buildSchemaPercolateMapping();
+			XContentBuilder settingBuilder = ElasticSearchUtils.buildPercolateIndexSettings(schema.getLanguage());
 			indicesClient.prepareCreate(schema.getId())
 				.setSource(settingBuilder)
 				.get();
+			
+			XContentBuilder mappingBuilder = XContentFactory.jsonBuilder()
+					.startObject()
+						.startObject("properties")
+							.startObject("query").field("type", "percolator").endObject()
+							.startObject("group").field("type", "keyword").endObject()
+						.endObject()
+					.endObject();
+			
+			PutMappingResponse mappingResponse = indicesClient.preparePutMapping(schema.getId())
+					.setType("queries")
+					.setSource(mappingBuilder)
+					.get();
+			
+			return mappingResponse.isAcknowledged();
 		}
-		
-		XContentBuilder mappingBuilder = XContentFactory.jsonBuilder()
-				.startObject()
-					.startObject("properties")
-						.startObject("query").field("type", "percolator").endObject()
-						.startObject("group").field("type", "keyword").endObject()
-					.endObject()
-				.endObject();
-		
-		PutMappingResponse mappingResponse = indicesClient.preparePutMapping(schema.getId())
-				.setType("queries")
-				.setSource(mappingBuilder)
-				.get();
 
-		return mappingResponse.isAcknowledged();
+		return false;
 	}
 	
-	public boolean createSchemaMapping(Schema schema) throws IOException {
+	public boolean createPercolateIndexMapping(Schema schema) throws IOException {
 		
-		createSchemaPercolateMapping(schema);
-		XContentBuilder mappingBuilder = ElasticSearchUtils.buildSchemaMapping(schema);
+		//Create Percolate Index, if not exist
+		createPercolateIndex(schema);
 		
+		//Create Document Mapping based on the specified schema
+		XContentBuilder mappingBuilder = ElasticSearchUtils.buildDocumentMapping(schema);
 		PutMappingResponse mappingResponse = client.admin().indices().preparePutMapping(schema.getId())
 			.setType("doc")
 			.setSource(mappingBuilder)
@@ -361,17 +365,4 @@ public class ElasticSearchClient {
 		return mappingResponse.isAcknowledged();
 	}
 	
-	
-	public static void main(String...args) throws IOException {
-		ElasticSearchClient client = new ElasticSearchClient("160.40.50.207", 9300);
-		
-		Schema schema =  new Schema();
-		schema.setLanguage("german");
-		schema.addField("title", true, true, false);
-		schema.addField("subtitle", true, true, false);
-		schema.addField("body", true, true, true);
-		schema.addField("slugline", false, false, false);
-		
-		client.createSchemaMapping(schema);
-	}
 }

@@ -27,17 +27,15 @@ import com.google.gson.JsonPrimitive;
 
 public class ElasticSearchUtils {
 
-	public static XContentBuilder buildSchemaPercolateMapping() throws IOException {
+	public static XContentBuilder buildPercolateIndexSettings(String lang) throws IOException {
 		
 		XContentBuilder settingBuilder = XContentFactory.jsonBuilder().startObject();
 		
 		settingBuilder.startObject("settings").startObject("analysis");
 		settingBuilder.startObject("filter");
-		addIndexFilters(settingBuilder, "english");
-		addIndexFilters(settingBuilder, "german");
+		addIndexFilters(settingBuilder, lang);
 		settingBuilder.endObject().startObject("analyzer");
-		addIndexAnalyzers(settingBuilder, "english");
-		addIndexAnalyzers(settingBuilder, "german");
+		addIndexAnalyzers(settingBuilder, lang);
 		settingBuilder.endObject();
 		settingBuilder.endObject().endObject().endObject();
 		
@@ -99,7 +97,7 @@ public class ElasticSearchUtils {
 		if(lang.equals("german")) {
 			mappingBuilder.startObject("german_stemming_analyzer");
 			mappingBuilder.field("tokenizer", "standard");
-			mappingBuilder.startArray("filter").value("lowercase").value("german_stop").value("german_normalization").value("english_stemmer");
+			mappingBuilder.startArray("filter").value("lowercase").value("german_stop").value("german_normalization").value("german_stemmer");
 			mappingBuilder.endArray().endObject();
 			
 			mappingBuilder.startObject("german_non_stemming_analyzer");
@@ -154,7 +152,7 @@ public class ElasticSearchUtils {
 		return docBuilder;
 	}
 	
-	public static XContentBuilder buildSchemaMapping(Schema schema) throws IOException {
+	public static XContentBuilder buildDocumentMapping(Schema schema) throws IOException {
 		
 		String lang = schema.getLanguage();
 		
