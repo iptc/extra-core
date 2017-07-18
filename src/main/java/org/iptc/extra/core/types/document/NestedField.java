@@ -14,6 +14,11 @@ public class NestedField extends DocumentField {
 		subfields.put(fieldName, fieldValue);
 	}
 	
+	public void addField(String fieldName, String fieldValue) {
+		DocumentField field = new TextField(fieldValue);
+		subfields.put(fieldName, field);
+	}
+	
 	public JsonElement toJson() {
 		JsonObject json = new JsonObject();
 		for(String fieldName : subfields.keySet()) {

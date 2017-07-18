@@ -36,6 +36,8 @@ public class Corpus {
 	
 	protected long documents = 0;	// the number of documents associated with that corpus
 	
+	protected long createdAt;
+	
 	public Corpus() {
 		
 	}
@@ -110,6 +112,14 @@ public class Corpus {
 
 	public void setDocuments(long documents) {
 		this.documents = documents;
+	}
+
+	public long getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(long createdAt) {
+		this.createdAt = createdAt;
 	}
 	
 	

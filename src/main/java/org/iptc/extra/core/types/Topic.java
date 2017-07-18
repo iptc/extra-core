@@ -33,7 +33,9 @@ public class Topic {
 
 	protected String taxonomyId;	// the taxonomy to which the topic belongs to
 
-	protected String label;			
+	protected String label;				
+	
+	protected String url;			// a URL of the topic (if any)
 	
 	public String getId() {
 		return id;
@@ -89,5 +91,13 @@ public class Topic {
 
 	public void setLabel(String label) {
 		this.label = label;
+	}
+
+	public String getUrl() {
+		return url;
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
 	}
 }

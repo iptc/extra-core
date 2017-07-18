@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
@@ -52,18 +54,18 @@ public class ElasticSearchClient {
 	}
 	
 	
-	public boolean createCorporaIndex(Corpus corpus) {
+	public boolean createCorpusIndex(Corpus corpus) {
 		Schema schema = corpus.getSchema();
 		if(schema != null) {
 			try {
-				XContentBuilder settingBuilder = ElasticSearchUtils.buildDocumentMapping(schema);
-				
+				XContentBuilder settingsBuilder = ElasticSearchUtils.buildCorporaIndexSettings(schema);				
 				IndicesAdminClient indicesClient = client.admin().indices();
-				indicesClient.prepareCreate(corpus.getId())
-					.setSource(settingBuilder)
+				CreateIndexResponse response = indicesClient.prepareCreate(corpus.getId())
+					.setSource(settingsBuilder)
 					.get();
 				
-				return true;
+				return response.isAcknowledged();
+				
 			} catch (IOException e) {
 				e.printStackTrace();
 				return false;
@@ -73,18 +75,31 @@ public class ElasticSearchClient {
 		return false;
 	}
 	
+	public boolean deleteCorpusIndex(String corpusId) {
+		try {
+			IndicesAdminClient indicesClient = client.admin().indices();
+			DeleteIndexResponse response = indicesClient.prepareDelete(corpusId).get();
+			
+			return response.isAcknowledged();
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
 	public boolean indexDocument(String indexName, Document document, Schema schema) {
 		try {
 			XContentBuilder source = ElasticSearchUtils.documentToSource(document, schema);
 			client.prepareIndex()
-					.setIndex(indexName)
-					.setType("documents")
-					.setId(document.getId())
-					.setSource(source)
-					.get();
+				.setIndex(indexName)
+				.setType("documents")
+				.setId(document.getId())
+				.setSource(source)
+				.get();
 			
 			return true;
-		} catch (IOException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
 		}
@@ -102,6 +117,10 @@ public class ElasticSearchClient {
 		}
 		
 		return null;
+	}
+	
+	public ElasticSearchResponse<Document> findDocuments(String indexName, int page, int nPerPage) throws IOException {
+		return findDocuments(null, indexName, page, nPerPage, null, null);
 	}
 	
 	public ElasticSearchResponse<Document> findDocuments(QueryBuilder qb, String indexName, int page, int nPerPage) throws IOException {
@@ -132,6 +151,10 @@ public class ElasticSearchClient {
 		
 		Integer from = (page - 1) * nPerPage;
 		Integer size = nPerPage;
+		
+		if(qb == null) {
+			qb = matchAllQuery();
+		}
 		
 		SearchRequestBuilder request = client.prepareSearch(indexName)
 		        .setTypes("documents")
@@ -368,7 +391,7 @@ public class ElasticSearchClient {
 		createPercolateIndex(schema);
 		
 		//Create Document Mapping based on the specified schema
-		XContentBuilder mappingBuilder = ElasticSearchUtils.buildDocumentMapping(schema);
+		XContentBuilder mappingBuilder = ElasticSearchUtils.buildDocumentMapping(schema, false);
 		PutMappingResponse mappingResponse = client.admin().indices().preparePutMapping(schema.getId())
 			.setType("doc")
 			.setSource(mappingBuilder)

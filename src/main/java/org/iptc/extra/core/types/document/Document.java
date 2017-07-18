@@ -1,7 +1,9 @@
 package org.iptc.extra.core.types.document;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.xml.bind.annotation.XmlRootElement;
@@ -21,6 +23,8 @@ public class Document extends HashMap<String, DocumentField> {
 
 	private String id;
 	
+	private List<DocumentTopic> topics = new ArrayList<DocumentTopic>();
+			
 	public Document() {
 		
 	}
@@ -55,6 +59,14 @@ public class Document extends HashMap<String, DocumentField> {
 		return this.containsKey(field);
 	}
 	
+	public List<DocumentTopic> getTopics() {
+		return topics;
+	}
+
+	public void setTopics(List<DocumentTopic> topics) {
+		this.topics = topics;
+	}
+
 	public boolean matchSchema(Schema schema) {
 		
 		Set<String> schemaFields = schema.getFieldNames();
