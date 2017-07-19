@@ -217,7 +217,7 @@ public class ElasticSearchUtils {
 			}
 			else {
 				mappingBuilder.startObject(fieldName);
-				mappingBuilder.field("type", "keyword");
+				mappingBuilder.field("type", (field.numeric ? "long" :"keyword"));
 				mappingBuilder.endObject();
 			}
 
