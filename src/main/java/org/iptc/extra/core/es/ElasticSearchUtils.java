@@ -216,8 +216,16 @@ public class ElasticSearchUtils {
 				}
 			}
 			else {
+				String type = "keyword";
+				if(field.numeric) {
+					type = "long";
+				}
+				else if(field.date) {
+					type = "date";
+				}
+				
 				mappingBuilder.startObject(fieldName);
-				mappingBuilder.field("type", (field.numeric ? "long" :"keyword"));
+				mappingBuilder.field("type", type);
 				mappingBuilder.endObject();
 			}
 

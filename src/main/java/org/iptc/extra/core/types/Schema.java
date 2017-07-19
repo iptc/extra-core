@@ -123,6 +123,7 @@ public class Schema {
 		
 		public String name;
 		
+		public boolean date = false;
 		public boolean numeric = false;
 		public boolean textual = false;			// indicates whether the field is textual or not 
 		public boolean hasSentences = false;	// indicates whether a textual field contains sentences  
